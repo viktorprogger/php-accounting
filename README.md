@@ -1,3 +1,7 @@
+----------
+# This composer module is in development. Please give it a star or subscribe to releases to be notified about development process.
+----------
+
 This module is a framework-agnostic base to make
 your own specific accounting module.
 
