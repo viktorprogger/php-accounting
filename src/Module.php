@@ -75,7 +75,7 @@ class Module
             $transactionService->saveModel();
         }
 
-        return $invoiceService->getInvoice();
+        return $invoiceService->loadInvoice();
     }
 
     /**
@@ -126,6 +126,6 @@ class Module
             $transactionService->saveModel();
         }
 
-        return $invoiceService->getInvoice();
+        return $invoiceService->loadInvoice();
     }
 }

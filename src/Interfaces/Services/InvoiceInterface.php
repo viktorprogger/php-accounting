@@ -42,4 +42,11 @@ interface InvoiceInterface
     public function isStateCanceled(): bool;
 
     public function getAmount(): float;
+
+    /**
+     * Loads actual state of Invoice model from database
+     *
+     * @return InvoiceModel
+     */
+    public function loadInvoice(): InvoiceModel;
 }
