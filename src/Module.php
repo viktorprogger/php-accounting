@@ -6,11 +6,9 @@ use miolae\Accounting\Exceptions\WrongStateException;
 use miolae\Accounting\Interfaces\ExceptionInterface;
 use miolae\Accounting\Interfaces\Models\AccountInterface;
 use miolae\Accounting\Interfaces\Models\InvoiceInterface;
-use miolae\Accounting\Interfaces\ModuleInterface;
 use miolae\Accounting\Interfaces\ServiceContainerInterface;
-use miolae\Accounting\Interfaces\Services\InvoiceInterface as InvoiceService;
 
-class Module implements ModuleInterface
+class Module
 {
     /** @var ServiceContainerInterface */
     protected $container;
@@ -25,23 +23,23 @@ class Module implements ModuleInterface
      * @param AccountInterface $accountTo
      * @param float            $amount
      *
-     * @return InvoiceService
+     * @return InvoiceInterface
      */
-    public function createInvoice(AccountInterface $accountFrom, AccountInterface $accountTo, float $amount): InvoiceService
+    public function createInvoice(AccountInterface $accountFrom, AccountInterface $accountTo, float $amount): InvoiceInterface
     {
         $invoiceService = $this->container->getInvoiceService();
         $invoiceService->createNewInvoice($accountFrom, $accountTo, $amount);
         $invoiceService->saveModel();
 
-        return $invoiceService;
+        return $invoiceService->getInvoice();
     }
 
     /**
      * @param InvoiceInterface $invoice
      *
-     * @return InvoiceService
+     * @return InvoiceInterface
      */
-    public function hold(InvoiceInterface $invoice): InvoiceService
+    public function hold(InvoiceInterface $invoice): InvoiceInterface
     {
         $invoiceService = $this->container->getInvoiceService($invoice);
         if (!$invoiceService->isStateCreated()) {
@@ -77,10 +75,15 @@ class Module implements ModuleInterface
             $transactionService->saveModel();
         }
 
-        return $invoiceService;
+        return $invoiceService->getInvoice();
     }
 
-    public function finish(InvoiceInterface $invoice): InvoiceService
+    /**
+     * @param InvoiceInterface $invoice
+     *
+     * @return InvoiceInterface
+     */
+    public function finish(InvoiceInterface $invoice): InvoiceInterface
     {
         $invoiceService = $this->container->getInvoiceService($invoice);
         if (!$invoiceService->isStateHold()) {
@@ -123,6 +126,6 @@ class Module implements ModuleInterface
             $transactionService->saveModel();
         }
 
-        return $invoiceService;
+        return $invoiceService->getInvoice();
     }
 }
