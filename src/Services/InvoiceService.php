@@ -30,8 +30,4 @@ abstract class InvoiceService implements InvoiceServiceInterface
     {
         return $this->invoice;
     }
-
-    public function isStateCreated()
-    {
-    }
 }

@@ -2,6 +2,7 @@
 
 namespace miolae\Accounting;
 
+use miolae\Accounting\Exceptions\WrongStateException;
 use miolae\Accounting\Interfaces\Models\AccountInterface;
 use miolae\Accounting\Interfaces\Models\InvoiceInterface;
 use miolae\Accounting\Interfaces\ModuleInterface;
@@ -34,13 +35,33 @@ class Module implements ModuleInterface
         return $invoiceService;
     }
 
-    public function hold(InvoiceInterface $invoice)
+    /**
+     * @param InvoiceInterface $invoice
+     *
+     * @return InvoiceService
+     */
+    public function hold(InvoiceInterface $invoice): InvoiceService
     {
         $invoiceService = $this->container->getInvoiceService($invoice);
         if (!$invoiceService->isStateCreated()) {
-            // TODO add an error
+            throw new WrongStateException('Invoice can\'t be held because its state is not "created"');
         }
 
+        $this->container->getDB()->beginTransaction();
 
+        $transactionService = $this->container->getTransactionService();
+        $transactionService->createNewTransaction($invoice);
+        $transactionService->setTypeHold();
+        $transactionService->saveModel();
+
+        $invoiceService->setStateHold();
+        $invoiceService->saveModel();
+
+        $transactionService->setStateSuccess();
+        $transactionService->saveModel();
+
+        $this->container->getDB()->commit();
+
+        return $invoiceService;
     }
 }

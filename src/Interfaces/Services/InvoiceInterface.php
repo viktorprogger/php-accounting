@@ -21,5 +21,19 @@ interface InvoiceInterface
 
     public function getInvoice(): InvoiceModel;
 
-    public function isStateCreated();
+    public function setStateCreated();
+
+    public function setStateHold();
+
+    public function setStateSuccess();
+
+    public function setStateCanceled();
+
+    public function isStateCreated(): bool;
+
+    public function isStateHold(): bool;
+
+    public function isStateSuccess(): bool;
+
+    public function isStateCanceled(): bool;
 }
