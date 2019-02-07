@@ -30,4 +30,9 @@ abstract class InvoiceService implements InvoiceServiceInterface
     {
         return $this->invoice;
     }
+
+    public function canCancel(): bool
+    {
+        return !$this->isStateHold() && !$this->isStateCreated();
+    }
 }

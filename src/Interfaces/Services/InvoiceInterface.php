@@ -43,6 +43,8 @@ interface InvoiceInterface
 
     public function getAmount(): float;
 
+    public function canCancel(): bool;
+
     /**
      * Loads actual state of Invoice model from database
      *

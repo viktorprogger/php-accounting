@@ -128,4 +128,45 @@ class Module
 
         return $invoiceService->loadInvoice();
     }
+
+    public function cancel(InvoiceInterface $invoice): InvoiceInterface
+    {
+        $invoiceService  = $this->container->getInvoiceService($invoice);
+        if (!$invoiceService->canCancel()) {
+            throw new WrongStateException('Can\'t cancel finished invoice');
+        }
+
+        $db = $this->container->getDB();
+
+        $transactionService = $this->container->getTransactionService();
+        $transactionService->createNewTransaction($invoice);
+        $transactionService->setStateNew();
+        $transactionService->setTypeHold();
+        $transactionService->saveModel();
+
+        $db->beginTransaction();
+
+        try {
+            if ($invoiceService->isStateHold()) {
+                $accountFrom = $invoiceService->getAccountFrom();
+                $accountFromService = $this->container->getAccountService($accountFrom);
+                $accountFromService->repay($invoiceService->getAmount());
+                $accountFromService->saveModel();
+            }
+
+            $invoiceService->setStateCanceled();
+            $invoiceService->saveModel();
+
+            $transactionService->setStateSuccess();
+            $transactionService->saveModel();
+
+            $db->commit();
+        } catch (ExceptionInterface $e) {
+            $db->rollback();
+            $transactionService->setStateFail();
+            $transactionService->saveModel();
+        }
+
+        return $invoiceService->loadInvoice();
+    }
 }

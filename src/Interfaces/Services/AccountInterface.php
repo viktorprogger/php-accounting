@@ -23,4 +23,11 @@ interface AccountInterface
     public function getAmountAvailable(): float;
 
     public function isBlackHole(): bool;
+
+    /**
+     * Returns specified funds from hold
+     *
+     * @param float $getAmount
+     */
+    public function repay(float $getAmount): void;
 }
