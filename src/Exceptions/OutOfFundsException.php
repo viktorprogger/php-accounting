@@ -2,7 +2,9 @@
 
 namespace miolae\Accounting\Exceptions;
 
-class OutOfFundsException extends Exception
+use miolae\Accounting\Interfaces\ExceptionInterface;
+
+class OutOfFundsException extends \RuntimeException implements ExceptionInterface
 {
     public function __construct(string $message = "Not enough funds available", int $code = 0, \Throwable $previous = null)
     {
