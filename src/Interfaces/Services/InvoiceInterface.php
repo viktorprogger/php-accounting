@@ -13,6 +13,10 @@ interface InvoiceInterface
 
     public function setAccountTo(AccountInterface $account);
 
+    public function getAccountFrom(): AccountInterface;
+
+    public function getAccountTo(): AccountInterface;
+
     public function setAmount(float $amount);
 
     public function createNewInvoice(AccountInterface $accountFrom, AccountInterface $accountTo, float $amount): void;
@@ -36,4 +40,6 @@ interface InvoiceInterface
     public function isStateSuccess(): bool;
 
     public function isStateCanceled(): bool;
+
+    public function getAmount(): float;
 }
