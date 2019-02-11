@@ -7,4 +7,12 @@
                         <directory>tests/unit</directory>
                 </testsuite>
         </testsuites>
+        <filter>
+                <whitelist processUncoveredFilesFromWhitelist="true">
+                        <directory suffix=".php">src</directory>
+                        <exclude>
+                                <directory>Exceptions</directory>
+                        </exclude>
+                </whitelist>
+        </filter>
 </phpunit>
