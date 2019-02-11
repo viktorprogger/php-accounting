@@ -6,6 +6,7 @@ use miolae\Accounting\Interfaces\Models\AccountInterface;
 use miolae\Accounting\Interfaces\Models\InvoiceInterface;
 use miolae\Accounting\Interfaces\Models\TransactionInterface;
 use miolae\Accounting\Interfaces\Services\AccountInterface as AccountService;
+use miolae\Accounting\Interfaces\Services\DBInterface;
 use miolae\Accounting\Interfaces\Services\InvoiceInterface as InvoiceService;
 use miolae\Accounting\Interfaces\Services\TransactionInterface as TransactionService;
 

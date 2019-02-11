@@ -1,6 +1,6 @@
 <?php
 
-namespace miolae\Accounting\Interfaces;
+namespace miolae\Accounting\Interfaces\Services;
 
 interface DBInterface
 {
