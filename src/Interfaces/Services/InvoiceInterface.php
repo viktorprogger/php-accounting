@@ -17,31 +17,11 @@ interface InvoiceInterface
 
     public function getAccountTo(): AccountInterface;
 
-    public function setAmount(float $amount);
-
     public function createNewInvoice(AccountInterface $accountFrom, AccountInterface $accountTo, float $amount): void;
 
     public function saveModel();
 
     public function getInvoice(): InvoiceModel;
-
-    public function setStateCreated();
-
-    public function setStateHold();
-
-    public function setStateSuccess();
-
-    public function setStateCanceled();
-
-    public function isStateCreated(): bool;
-
-    public function isStateHold(): bool;
-
-    public function isStateSuccess(): bool;
-
-    public function isStateCanceled(): bool;
-
-    public function getAmount(): float;
 
     public function canCancel(): bool;
 

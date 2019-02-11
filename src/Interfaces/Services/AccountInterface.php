@@ -15,11 +15,6 @@ interface AccountInterface
     public function withdraw(float $amount): void;
 
     public function add(float $amount): void;
-
-    public function getAmount(): float;
-
-    public function getAmountHeld(): float;
-
     public function getAmountAvailable(): float;
 
     public function isBlackHole(): bool;
