@@ -42,7 +42,7 @@ class Module
     public function hold(InvoiceInterface $invoice): InvoiceInterface
     {
         $invoiceService = $this->container->getInvoiceService($invoice);
-        if (!$invoiceService->isStateCreated()) {
+        if (!$invoice->isStateCreated()) {
             throw new WrongStateException('Invoice can\'t be held because its state is not "created"');
         }
 
@@ -50,8 +50,9 @@ class Module
 
         $transactionService = $this->container->getTransactionService();
         $transactionService->createNewTransaction($invoice);
-        $transactionService->setStateNew();
-        $transactionService->setTypeHold();
+        $transaction = $transactionService->getTransaction();
+        $transaction->setStateNew();
+        $transaction->setTypeHold();
         $transactionService->saveModel();
 
         $db->beginTransaction();
@@ -59,19 +60,19 @@ class Module
         try {
             $accountFrom = $invoiceService->getAccountFrom();
             $accountFromService = $this->container->getAccountService($accountFrom);
-            $accountFromService->hold($invoiceService->getAmount());
+            $accountFromService->hold($invoice->getAmount());
             $accountFromService->saveModel();
 
-            $invoiceService->setStateHold();
+            $invoice->setStateHold();
             $invoiceService->saveModel();
 
-            $transactionService->setStateSuccess();
+            $transaction->setStateSuccess();
             $transactionService->saveModel();
 
             $db->commit();
         } catch (ExceptionInterface $e) {
             $db->rollback();
-            $transactionService->setStateFail();
+            $transaction->setStateFail();
             $transactionService->saveModel();
         }
 
@@ -86,7 +87,7 @@ class Module
     public function finish(InvoiceInterface $invoice): InvoiceInterface
     {
         $invoiceService = $this->container->getInvoiceService($invoice);
-        if (!$invoiceService->isStateHold()) {
+        if (!$invoice->isStateHold()) {
             throw new WrongStateException('Invoice can\'t be held because its state is not "hold"');
         }
 
@@ -94,14 +95,15 @@ class Module
 
         $transactionService = $this->container->getTransactionService();
         $transactionService->createNewTransaction($invoice);
-        $transactionService->setStateNew();
-        $transactionService->setTypeFinish();
+        $transaction = $transactionService->getTransaction();
+        $transaction->setStateNew();
+        $transaction->setTypeFinish();
         $transactionService->saveModel();
 
         $db->beginTransaction();
 
         try {
-            $amount = $invoiceService->getAmount();
+            $amount = $invoice->getAmount();
 
             $accountFrom = $invoiceService->getAccountFrom();
             $accountFromService = $this->container->getAccountService($accountFrom);
@@ -113,16 +115,16 @@ class Module
             $accountToService->add($amount);
             $accountToService->saveModel();
 
-            $invoiceService->setStateHold();
+            $invoice->setStateHold();
             $invoiceService->saveModel();
 
-            $transactionService->setStateSuccess();
+            $transaction->setStateSuccess();
             $transactionService->saveModel();
 
             $db->commit();
         } catch (ExceptionInterface $e) {
             $db->rollback();
-            $transactionService->setStateFail();
+            $transaction->setStateFail();
             $transactionService->saveModel();
         }
 
@@ -140,30 +142,31 @@ class Module
 
         $transactionService = $this->container->getTransactionService();
         $transactionService->createNewTransaction($invoice);
-        $transactionService->setStateNew();
-        $transactionService->setTypeHold();
+        $transaction = $transactionService->getTransaction();
+        $transaction->setStateNew();
+        $transaction->setTypeHold();
         $transactionService->saveModel();
 
         $db->beginTransaction();
 
         try {
-            if ($invoiceService->isStateHold()) {
+            if ($invoice->isStateHold()) {
                 $accountFrom = $invoiceService->getAccountFrom();
                 $accountFromService = $this->container->getAccountService($accountFrom);
-                $accountFromService->repay($invoiceService->getAmount());
+                $accountFromService->repay($invoice->getAmount());
                 $accountFromService->saveModel();
             }
 
-            $invoiceService->setStateCanceled();
+            $invoice->setStateCanceled();
             $invoiceService->saveModel();
 
-            $transactionService->setStateSuccess();
+            $transaction->setStateSuccess();
             $transactionService->saveModel();
 
             $db->commit();
         } catch (ExceptionInterface $e) {
             $db->rollback();
-            $transactionService->setStateFail();
+            $transaction->setStateFail();
             $transactionService->saveModel();
         }
 
