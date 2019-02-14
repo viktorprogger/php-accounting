@@ -28,10 +28,10 @@ class Module
     public function createInvoice(AccountInterface $accountFrom, AccountInterface $accountTo, float $amount): InvoiceInterface
     {
         $invoiceService = $this->container->getInvoiceService();
-        $invoiceService->createNewInvoice($accountFrom, $accountTo, $amount);
-        $invoiceService->saveModel();
+        $invoice = $invoiceService::createNewInvoice($accountFrom, $accountTo, $amount);
+        $invoice = $invoiceService::saveModel($invoice);
 
-        return $invoiceService->getInvoice();
+        return $invoice;
     }
 
     /**
@@ -49,34 +49,33 @@ class Module
         $db = $this->container->getDB();
 
         $transactionService = $this->container->getTransactionService();
-        $transactionService->createNewTransaction($invoice);
-        $transaction = $transactionService->getTransaction();
+        $transaction = $transactionService::createNewTransaction($invoice);
         $transaction->setStateNew();
         $transaction->setTypeHold();
-        $transactionService->saveModel();
+        $transactionService::saveModel($transaction);
 
         $db->beginTransaction();
 
         try {
-            $accountFrom = $invoiceService->getAccountFrom();
-            $accountFromService = $this->container->getAccountService($accountFrom);
-            $accountFromService->hold($invoice->getAmount());
-            $accountFromService->saveModel();
+            $accountFrom = $invoiceService::getAccountFrom($invoice);
+            $accountService = $this->container->getAccountService($accountFrom);
+            $accountService::hold($accountFrom, $invoice->getAmount());
+            $accountService::saveModel($accountFrom);
 
             $invoice->setStateHold();
-            $invoiceService->saveModel();
+            $invoiceService::saveModel($invoice);
 
             $transaction->setStateSuccess();
-            $transactionService->saveModel();
+            $transactionService::saveModel($transaction);
 
             $db->commit();
         } catch (ExceptionInterface $e) {
             $db->rollback();
             $transaction->setStateFail();
-            $transactionService->saveModel();
+            $transactionService::saveModel($transaction);
         }
 
-        return $invoiceService->loadInvoice();
+        return $invoiceService::loadInvoice($invoice);
     }
 
     /**
@@ -94,82 +93,79 @@ class Module
         $db = $this->container->getDB();
 
         $transactionService = $this->container->getTransactionService();
-        $transactionService->createNewTransaction($invoice);
-        $transaction = $transactionService->getTransaction();
+        $transaction = $transactionService::createNewTransaction($invoice);
         $transaction->setStateNew();
         $transaction->setTypeFinish();
-        $transactionService->saveModel();
+        $transactionService::saveModel($transaction);
 
         $db->beginTransaction();
 
         try {
             $amount = $invoice->getAmount();
 
-            $accountFrom = $invoiceService->getAccountFrom();
-            $accountFromService = $this->container->getAccountService($accountFrom);
-            $accountFromService->withdraw($amount);
-            $accountFromService->saveModel();
+            $accountFrom = $invoiceService::getAccountFrom($invoice);
+            $accountService = $this->container->getAccountService($accountFrom);
+            $accountService::withdraw($accountFrom, $amount);
+            $accountService::saveModel($accountFrom);
 
-            $accountTo = $invoiceService->getAccountTo();
-            $accountToService = $this->container->getAccountService($accountTo);
-            $accountToService->add($amount);
-            $accountToService->saveModel();
+            $accountTo = $invoiceService::getAccountTo($invoice);
+            $accountService::add($accountTo, $amount);
+            $accountService::saveModel($accountTo);
 
             $invoice->setStateHold();
-            $invoiceService->saveModel();
+            $invoiceService::saveModel($invoice);
 
             $transaction->setStateSuccess();
-            $transactionService->saveModel();
+            $transactionService::saveModel($transaction);
 
             $db->commit();
         } catch (ExceptionInterface $e) {
             $db->rollback();
             $transaction->setStateFail();
-            $transactionService->saveModel();
+            $transactionService::saveModel($transaction);
         }
 
-        return $invoiceService->loadInvoice();
+        return $invoiceService::loadInvoice($invoice);
     }
 
     public function cancel(InvoiceInterface $invoice): InvoiceInterface
     {
         $invoiceService  = $this->container->getInvoiceService($invoice);
-        if (!$invoiceService->canCancel()) {
+        if (!$invoiceService::canCancel($invoice)) {
             throw new WrongStateException('Can\'t cancel finished invoice');
         }
 
         $db = $this->container->getDB();
 
         $transactionService = $this->container->getTransactionService();
-        $transactionService->createNewTransaction($invoice);
-        $transaction = $transactionService->getTransaction();
+        $transaction = $transactionService::createNewTransaction($invoice);
         $transaction->setStateNew();
         $transaction->setTypeHold();
-        $transactionService->saveModel();
+        $transactionService::saveModel($transaction);
 
         $db->beginTransaction();
 
         try {
             if ($invoice->isStateHold()) {
-                $accountFrom = $invoiceService->getAccountFrom();
-                $accountFromService = $this->container->getAccountService($accountFrom);
-                $accountFromService->repay($invoice->getAmount());
-                $accountFromService->saveModel();
+                $accountFrom = $invoiceService::getAccountFrom($invoice);
+                $accountService = $this->container->getAccountService($accountFrom);
+                $accountService::repay($accountFrom, $invoice->getAmount());
+                $accountService::saveModel($accountFrom);
             }
 
             $invoice->setStateCanceled();
-            $invoiceService->saveModel();
+            $invoiceService::saveModel($invoice);
 
             $transaction->setStateSuccess();
-            $transactionService->saveModel();
+            $transactionService::saveModel($transaction);
 
             $db->commit();
         } catch (ExceptionInterface $e) {
             $db->rollback();
             $transaction->setStateFail();
-            $transactionService->saveModel();
+            $transactionService::saveModel($transaction);
         }
 
-        return $invoiceService->loadInvoice();
+        return $invoiceService::loadInvoice($invoice);
     }
 }

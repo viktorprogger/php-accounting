@@ -8,12 +8,14 @@ use miolae\Accounting\Interfaces\Services\TransactionInterface as TransactionSer
 
 abstract class TransactionService implements TransactionServiceInterface
 {
-    /** @var TransactionInterface */
-    protected $transaction;
-
-    public function createNewTransaction(InvoiceInterface $invoice): void
+    public static function createNewTransaction(InvoiceInterface $invoice): TransactionInterface
     {
-        $this->setInvoice($invoice);
-        $this->setStateNew();
+        $transaction = static::getTransactionInstance();
+        static::setInvoice($transaction, $invoice);
+        $transaction->setStateNew();
+
+        return $transaction;
     }
+
+    abstract protected static function getTransactionInstance(): TransactionInterface;
 }

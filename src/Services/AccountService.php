@@ -8,37 +8,23 @@ use miolae\Accounting\Interfaces\Services\AccountInterface;
 
 abstract class AccountService implements AccountInterface
 {
-    /** @var ModelInterface */
-    protected $account;
-
-    public function __construct(ModelInterface $account)
-    {
-        $this->account = $account;
-    }
-
-    public function getAccount(): ModelInterface
-    {
-        return $this->account;
-    }
-
     /**
-     * @param float $amount
-     *
-     * @throws OutOfFundsException
+     * @param ModelInterface $account
+     * @param float          $amount
      */
-    public function hold(float $amount): void
+    public static function hold(ModelInterface $account, float $amount): void
     {
-        if (!$this->isBlackHole() && $this->getAmountAvailable() < $amount) {
+        if (!static::isBlackHole($account) && static::getAmountAvailable($account) < $amount) {
             throw new OutOfFundsException();
         }
 
-        $this->holdInternal($amount);
+        static::holdInternal($account, $amount);
     }
 
-    public function getAmountAvailable(): float
+    public static function getAmountAvailable(ModelInterface $account): float
     {
-        return $this->getAmount() - $this->getAmountHeld();
+        return $account->getAmount() - $account->getAmountHeld();
     }
 
-    abstract protected function holdInternal(float $amount): void;
+    abstract protected static function holdInternal(ModelInterface $account, float $amount): void;
 }

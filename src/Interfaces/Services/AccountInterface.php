@@ -6,23 +6,23 @@ use miolae\Accounting\Interfaces\Models\AccountInterface as ModelInterface;
 
 interface AccountInterface
 {
-    public function getAccount(): ModelInterface;
+    public static function saveModel(ModelInterface $account): ModelInterface;
 
-    public function saveModel(): void;
+    public static function hold(ModelInterface $account, float $amount): void;
 
-    public function hold(float $amount): void;
+    public static function withdraw(ModelInterface $account, float $amount): void;
 
-    public function withdraw(float $amount): void;
+    public static function add(ModelInterface $account, float $amount): void;
 
-    public function add(float $amount): void;
-    public function getAmountAvailable(): float;
+    public static function getAmountAvailable(ModelInterface $account): float;
 
-    public function isBlackHole(): bool;
+    public static function isBlackHole(ModelInterface $account): bool;
 
     /**
      * Returns specified funds from hold
      *
-     * @param float $getAmount
+     * @param float          $getAmount
+     * @param ModelInterface $account
      */
-    public function repay(float $getAmount): void;
+    public static function repay(ModelInterface $account, float $getAmount): void;
 }

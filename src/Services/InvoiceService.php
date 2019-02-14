@@ -8,31 +8,21 @@ use miolae\Accounting\Interfaces\Services\InvoiceInterface as InvoiceServiceInte
 
 abstract class InvoiceService implements InvoiceServiceInterface
 {
-    /** @var InvoiceInterface */
-    protected $invoice;
-
-    public function __construct(InvoiceInterface $invoice)
+    public static function createNewInvoice(AccountInterface $accountFrom, AccountInterface $accountTo, float $amount): InvoiceInterface
     {
-        $this->invoice = $invoice;
+        $invoice = static::getInvoiceInstance();
+
+        static::setAccountFrom($invoice, $accountFrom);
+        static::setAccountTo($invoice, $accountTo);
+        $invoice->setAmount($amount);
+
+        return $invoice;
     }
 
-    public function createNewInvoice(AccountInterface $accountFrom, AccountInterface $accountTo, float $amount): void
+    public static function canCancel(InvoiceInterface $invoice): bool
     {
-        $this->setAccountFrom($accountFrom);
-        $this->setAccountTo($accountTo);
-        $this->setAmount($amount);
+        return !$invoice->isStateHold() && !$invoice->isStateCreated();
     }
 
-    /**
-     * @return InvoiceInterface
-     */
-    public function getInvoice(): InvoiceInterface
-    {
-        return $this->invoice;
-    }
-
-    public function canCancel(): bool
-    {
-        return !$this->isStateHold() && !$this->isStateCreated();
-    }
+    abstract protected static function getInvoiceInstance(): InvoiceInterface;
 }
