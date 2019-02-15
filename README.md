@@ -27,3 +27,9 @@ You need to create 3 different data models:
     - Complete. Now you have your products, and we need to give the funds to the seller. The way to do this is to move held by the Invoice funds from your account to sellers account and mark the Invoice as `complete`
     - Canceled. Sometime there are some reasons to cancel your order. Just mark the Invoice as `canceled`. And don't forget to "defrost" held funds (if some).
 - Transactions. This is an atomic movement in funds transitioning. Before every step in Invoice workflow you need to create a Transaction in state `created` and move it to state `success` on the end of this step or to `cancel` on some type of fail (i.e. if you're trying to hold funds when it is not enough on the account you're working with). With transactions you can show history of any account and build amazing charts.
+
+
+
+### Thanks
+
+[@Sp1ker](https://github.com/Sp1ker): Thanks for help in architecture design and some criticism.
