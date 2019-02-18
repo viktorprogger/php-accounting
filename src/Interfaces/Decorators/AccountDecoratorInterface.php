@@ -1,12 +1,19 @@
 <?php
 
-namespace miolae\Accounting\Interfaces\Services;
+namespace miolae\Accounting\Interfaces\Decorators;
 
-use miolae\Accounting\Interfaces\Models\AccountInterface as ModelInterface;
+use miolae\Accounting\Interfaces\Models\AccountInterface;
 
-interface AccountInterface
+/**
+ * Interface AccountDecoratorInterface
+ *
+ * @package miolae\Accounting\Interfaces\Decorators
+ *
+ * @mixin AccountInterface
+ */
+interface AccountDecoratorInterface
 {
-    public function getAccount(): ModelInterface;
+    public function getModel(): AccountInterface;
 
     public function saveModel(): void;
 

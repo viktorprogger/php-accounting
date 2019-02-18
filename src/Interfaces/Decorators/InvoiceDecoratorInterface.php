@@ -1,13 +1,20 @@
 <?php
 
-namespace miolae\Accounting\Interfaces\Services;
+namespace miolae\Accounting\Interfaces\Decorators;
 
 use miolae\Accounting\Interfaces\Models\AccountInterface;
-use miolae\Accounting\Interfaces\Models\InvoiceInterface as InvoiceModel;
+use miolae\Accounting\Interfaces\Models\InvoiceInterface;
 
-interface InvoiceInterface
+/**
+ * Interface InvoiceDecoratorInterface
+ *
+ * @package miolae\Accounting\Interfaces\Decorators
+ *
+ * @mixin InvoiceInterface
+ */
+interface InvoiceDecoratorInterface
 {
-    public function __construct(InvoiceModel $invoice);
+    public function __construct(InvoiceInterface $invoice);
 
     public function setAccountFrom(AccountInterface $account);
 
@@ -21,14 +28,14 @@ interface InvoiceInterface
 
     public function saveModel();
 
-    public function getInvoice(): InvoiceModel;
+    public function getModel(): InvoiceInterface;
 
     public function canCancel(): bool;
 
     /**
      * Loads actual state of Invoice model from database
      *
-     * @return InvoiceModel
+     * @return InvoiceInterface
      */
-    public function loadInvoice(): InvoiceModel;
+    public function loadInvoice(): InvoiceInterface;
 }
