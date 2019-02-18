@@ -21,10 +21,12 @@ abstract class TransactionDecorator implements TransactionDecoratorInterface
     /** @var TransactionInterface */
     protected $model;
 
-    public function createNewTransaction(InvoiceInterface $invoice): void
+    public function createNewTransaction(InvoiceInterface $invoice, $stateTo): void
     {
         $this->setInvoice($invoice);
-        $this->setStateNew();
+        $this->model->setStateNew();
+        $this->model->setInvoiceStateFrom($invoice->getState());
+        $this->model->setInvoiceStateTo($stateTo);
     }
 
     /**

@@ -41,8 +41,23 @@ abstract class InvoiceDecorator implements InvoiceDecoratorInterface
         return $this->model;
     }
 
+    /**
+     * Check if associated invoice model can be canceled
+     *
+     * @return bool
+     */
     public function canCancel(): bool
     {
-        return !$this->model->isStateHold() && !$this->model->isStateCreated();
+        return $this->model->isStateHold() || $this->model->isStateCreated() || $this->model->isStateTransacted();
+    }
+
+    public function canHold(): bool
+    {
+        return $this->model->isStateCreated();
+    }
+
+    public function canUnhold(): bool
+    {
+        return $this->model->isStateTransacted();
     }
 }

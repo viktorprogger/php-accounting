@@ -10,9 +10,7 @@ interface TransactionInterface
 
     public function setStateFail(): void;
 
-    public function setTypeHold(): void;
+    public function setInvoiceStateFrom($state): void;
 
-    public function setTypeFinish(): void;
-
-    public function setTypeCancel(): void;
+    public function setInvoiceStateTo($state): void;
 }
