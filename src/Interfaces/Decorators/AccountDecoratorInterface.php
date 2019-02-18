@@ -1,12 +1,19 @@
 <?php
 
-namespace miolae\Accounting\Interfaces\Services;
+namespace miolae\Accounting\Interfaces\Decorators;
 
-use miolae\Accounting\Interfaces\Models\AccountInterface as ModelInterface;
+use miolae\Accounting\Interfaces\Models\AccountInterface;
 
-interface AccountInterface
+/**
+ * Interface AccountDecoratorInterface
+ *
+ * @package miolae\Accounting\Interfaces\Decorators
+ *
+ * @mixin AccountInterface
+ */
+interface AccountDecoratorInterface
 {
-    public function getAccount(): ModelInterface;
+    public function getModel(): AccountInterface;
 
     public function saveModel(): void;
 
@@ -15,11 +22,6 @@ interface AccountInterface
     public function withdraw(float $amount): void;
 
     public function add(float $amount): void;
-
-    public function getAmount(): float;
-
-    public function getAmountHeld(): float;
-
     public function getAmountAvailable(): float;
 
     public function isBlackHole(): bool;

@@ -27,11 +27,11 @@ class Module
      */
     public function createInvoice(AccountInterface $accountFrom, AccountInterface $accountTo, float $amount): InvoiceInterface
     {
-        $invoiceService = $this->container->getInvoiceService();
-        $invoiceService->createNewInvoice($accountFrom, $accountTo, $amount);
-        $invoiceService->saveModel();
+        $invoiceDecorator = $this->container->getInvoiceDecorator();
+        $invoiceDecorator->createNewInvoice($accountFrom, $accountTo, $amount);
+        $invoiceDecorator->saveModel();
 
-        return $invoiceService->getInvoice();
+        return $invoiceDecorator->loadInvoice();
     }
 
     /**
@@ -41,41 +41,41 @@ class Module
      */
     public function hold(InvoiceInterface $invoice): InvoiceInterface
     {
-        $invoiceService = $this->container->getInvoiceService($invoice);
-        if (!$invoiceService->isStateCreated()) {
+        $invoiceDecorator = $this->container->getInvoiceDecorator($invoice);
+        if (!$invoice->isStateCreated()) {
             throw new WrongStateException('Invoice can\'t be held because its state is not "created"');
         }
 
         $db = $this->container->getDB();
 
-        $transactionService = $this->container->getTransactionService();
-        $transactionService->createNewTransaction($invoice);
-        $transactionService->setStateNew();
-        $transactionService->setTypeHold();
-        $transactionService->saveModel();
+        $transactionDecorator = $this->container->getTransactionDecorator();
+        $transactionDecorator->createNewTransaction($invoice);
+        $transactionDecorator->setStateNew();
+        $transactionDecorator->setTypeHold();
+        $transactionDecorator->saveModel();
 
         $db->beginTransaction();
 
         try {
-            $accountFrom = $invoiceService->getAccountFrom();
-            $accountFromService = $this->container->getAccountService($accountFrom);
-            $accountFromService->hold($invoiceService->getAmount());
-            $accountFromService->saveModel();
+            $accountFrom = $invoiceDecorator->getAccountFrom();
+            $accountDecorator = $this->container->getAccountDecorator($accountFrom);
+            $accountDecorator->hold($invoice->getAmount());
+            $accountDecorator->saveModel();
 
-            $invoiceService->setStateHold();
-            $invoiceService->saveModel();
+            $invoice->setStateHold();
+            $invoiceDecorator->saveModel();
 
-            $transactionService->setStateSuccess();
-            $transactionService->saveModel();
+            $transactionDecorator->setStateSuccess();
+            $transactionDecorator->saveModel();
 
             $db->commit();
         } catch (ExceptionInterface $e) {
             $db->rollback();
-            $transactionService->setStateFail();
-            $transactionService->saveModel();
+            $transactionDecorator->setStateFail();
+            $transactionDecorator->saveModel();
         }
 
-        return $invoiceService->loadInvoice();
+        return $invoiceDecorator->loadInvoice();
     }
 
     /**
@@ -85,88 +85,88 @@ class Module
      */
     public function finish(InvoiceInterface $invoice): InvoiceInterface
     {
-        $invoiceService = $this->container->getInvoiceService($invoice);
-        if (!$invoiceService->isStateHold()) {
+        $invoiceDecorator = $this->container->getInvoiceDecorator($invoice);
+        if (!$invoice->isStateHold()) {
             throw new WrongStateException('Invoice can\'t be held because its state is not "hold"');
         }
 
         $db = $this->container->getDB();
 
-        $transactionService = $this->container->getTransactionService();
-        $transactionService->createNewTransaction($invoice);
-        $transactionService->setStateNew();
-        $transactionService->setTypeFinish();
-        $transactionService->saveModel();
+        $transactionDecorator = $this->container->getTransactionDecorator();
+        $transactionDecorator->createNewTransaction($invoice);
+        $transactionDecorator->setStateNew();
+        $transactionDecorator->setTypeFinish();
+        $transactionDecorator->saveModel();
 
         $db->beginTransaction();
 
         try {
-            $amount = $invoiceService->getAmount();
+            $amount = $invoice->getAmount();
 
-            $accountFrom = $invoiceService->getAccountFrom();
-            $accountFromService = $this->container->getAccountService($accountFrom);
-            $accountFromService->withdraw($amount);
-            $accountFromService->saveModel();
+            $accountFrom = $invoiceDecorator->getAccountFrom();
+            $accountFromDecorator = $this->container->getAccountDecorator($accountFrom);
+            $accountFromDecorator->withdraw($amount);
+            $accountFromDecorator->saveModel();
 
-            $accountTo = $invoiceService->getAccountTo();
-            $accountToService = $this->container->getAccountService($accountTo);
-            $accountToService->add($amount);
-            $accountToService->saveModel();
+            $accountTo = $invoiceDecorator->getAccountTo();
+            $accountToDecorator = $this->container->getAccountDecorator($accountTo);
+            $accountToDecorator->add($amount);
+            $accountToDecorator->saveModel();
 
-            $invoiceService->setStateHold();
-            $invoiceService->saveModel();
+            $invoice->setStateHold();
+            $invoiceDecorator->saveModel();
 
-            $transactionService->setStateSuccess();
-            $transactionService->saveModel();
+            $transactionDecorator->setStateSuccess();
+            $transactionDecorator->saveModel();
 
             $db->commit();
         } catch (ExceptionInterface $e) {
             $db->rollback();
-            $transactionService->setStateFail();
-            $transactionService->saveModel();
+            $transactionDecorator->setStateFail();
+            $transactionDecorator->saveModel();
         }
 
-        return $invoiceService->loadInvoice();
+        return $invoiceDecorator->loadInvoice();
     }
 
     public function cancel(InvoiceInterface $invoice): InvoiceInterface
     {
-        $invoiceService  = $this->container->getInvoiceService($invoice);
-        if (!$invoiceService->canCancel()) {
+        $invoiceDecorator  = $this->container->getInvoiceDecorator($invoice);
+        if (!$invoiceDecorator->canCancel()) {
             throw new WrongStateException('Can\'t cancel finished invoice');
         }
 
         $db = $this->container->getDB();
 
-        $transactionService = $this->container->getTransactionService();
-        $transactionService->createNewTransaction($invoice);
-        $transactionService->setStateNew();
-        $transactionService->setTypeHold();
-        $transactionService->saveModel();
+        $transactionDecorator = $this->container->getTransactionDecorator();
+        $transactionDecorator->createNewTransaction($invoice);
+        $transactionDecorator->setStateNew();
+        $transactionDecorator->setTypeHold();
+        $transactionDecorator->saveModel();
 
         $db->beginTransaction();
 
         try {
-            if ($invoiceService->isStateHold()) {
-                $accountFrom = $invoiceService->getAccountFrom();
-                $accountFromService = $this->container->getAccountService($accountFrom);
-                $accountFromService->repay($invoiceService->getAmount());
-                $accountFromService->saveModel();
+            if ($invoice->isStateHold()) {
+                $accountFrom = $invoiceDecorator->getAccountFrom();
+                $accountDecorator = $this->container->getAccountDecorator($accountFrom);
+                $accountDecorator->repay($invoice->getAmount());
+                $accountDecorator->saveModel();
             }
 
-            $invoiceService->setStateCanceled();
-            $invoiceService->saveModel();
+            $invoice->setStateCanceled();
+            $invoiceDecorator->saveModel();
 
-            $transactionService->setStateSuccess();
-            $transactionService->saveModel();
+            $transactionDecorator->setStateSuccess();
+            $transactionDecorator->saveModel();
 
             $db->commit();
         } catch (ExceptionInterface $e) {
             $db->rollback();
-            $transactionService->setStateFail();
-            $transactionService->saveModel();
+            $transactionDecorator->setStateFail();
+            $transactionDecorator->saveModel();
         }
 
-        return $invoiceService->loadInvoice();
+        return $invoiceDecorator->loadInvoice();
     }
 }
