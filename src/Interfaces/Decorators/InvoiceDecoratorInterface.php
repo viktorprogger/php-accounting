@@ -38,4 +38,8 @@ interface InvoiceDecoratorInterface
      * @return InvoiceInterface
      */
     public function loadInvoice(): InvoiceInterface;
+
+    public function canHold();
+
+    public function canUnhold();
 }

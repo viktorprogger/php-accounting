@@ -16,7 +16,7 @@ interface TransactionDecoratorInterface
 {
     public function __construct(TransactionInterface $transaction);
 
-    public function createNewTransaction(InvoiceInterface $invoice): void;
+    public function createNewTransaction(InvoiceInterface $invoice, $stateTo): void;
 
     public function saveModel();
 
