@@ -3,102 +3,154 @@
 use miolae\Accounting\Decorators\InvoiceDecorator;
 use miolae\Accounting\Decorators\TransactionDecorator;
 use miolae\Accounting\Exceptions\WrongStateException;
+use miolae\Accounting\Interfaces\Decorators\AccountDecoratorInterface;
 use miolae\Accounting\Interfaces\ExceptionInterface;
+use miolae\Accounting\Interfaces\Models\AccountInterface;
 use miolae\Accounting\Interfaces\Models\InvoiceInterface;
 use miolae\Accounting\Interfaces\Models\TransactionInterface;
 use miolae\Accounting\Interfaces\ServiceContainerInterface;
 use miolae\Accounting\Interfaces\Services\DBInterface;
 use miolae\Accounting\Module;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Prophecy\Argument\Token\TypeToken;
+use Prophecy\Prophecy\ObjectProphecy;
 
 class ModuleCancelTest extends TestCase
 {
-    /** @var ServiceContainerInterface|MockObject */
+    /** @var ServiceContainerInterface|ObjectProphecy */
     protected $DI;
-    /** @var DBInterface|MockObject */
-    protected $db;
+
+    /** @var DBInterface|ObjectProphecy */
+    protected $DB;
+
+    /** @var TransactionDecorator|TransactionInterface|ObjectProphecy */
+    protected $transaction;
+
+    /** @var InvoiceInterface|ObjectProphecy */
+    protected $invoice;
+
+    /** @var InvoiceDecorator|InvoiceInterface|ObjectProphecy */
+    protected $invoiceDecorator;
 
     protected function setUp()
     {
         parent::setUp();
-        $this->DI = $this->createMock(ServiceContainerInterface::class);
-        $this->db = $this->createMock(DBInterface::class);
+        $this->DI = $this->prophesize(ServiceContainerInterface::class);
+        $this->DB = $this->prophesize(DBInterface::class);
 
-        $transactionDecorator = $this->createMock(TransactionDecorator::class);
+        $this->transaction = $this->prophesize(TransactionDecorator::class);
+        $this->transaction->willImplement(TransactionInterface::class);
 
-        $this->DI->method('getDB')->willReturn($this->db);
-        $this->DI->method('getTransactionDecorator')->willReturn($transactionDecorator);
+        $this->DI->getDB()->willReturn($this->DB->reveal());
+        $this->DI->getTransactionDecorator()->willReturn($this->transaction->reveal());
+
+        $this->invoice = $this->prophesize(InvoiceInterface::class);
+
+        $this->invoiceDecorator = $this->prophesize(InvoiceDecorator::class);
+        $this->invoiceDecorator->willImplement(InvoiceInterface::class);
     }
 
+    /**
+     * Successfully cancel an invoice which is not held or transacted
+     */
     public function testOk(): void
     {
-        $invoice = $this->createMock(InvoiceInterface::class);
-        $invoice->method('isStateHold')->willReturn(false);
+        $this->invoiceDecorator->isStateHold()->willReturn(false);
+        $this->invoiceDecorator->isStateTransacted()->willReturn(false);
+        $this->invoiceDecorator->canCancel()->willReturn(true);
+        $this->invoiceDecorator->loadInvoice()->shouldBeCalledTimes(1);
+        $this->invoiceDecorator->setStateCanceled()->shouldBeCalledTimes(1);
+        $this->invoiceDecorator->saveModel()->shouldBeCalledTimes(1);
 
-        $invoiceDecorator = $this->createMock(InvoiceDecorator::class);
-        $invoiceDecorator->method('canCancel')->willReturn(true);
-        $invoiceDecorator->method('getModel')->willReturn($invoice);
-
-        $this->DI->method('getInvoiceDecorator')->willReturn($invoiceDecorator);
-
-        $this->db->expects($this->once())->method('commit');
-        $invoiceDecorator->expects($this->once())->method('loadInvoice');
-
-        $module = new Module($this->DI);
-        $module->cancel($invoice);
-    }
-
-    public function testOkPro(): void
-    {
-        $prophecyInvoice = $this->prophesize(InvoiceInterface::class);
-
-        $prophecyInvoiceDecorator = $this->prophesize(InvoiceDecorator::class);
-        $prophecyInvoiceDecorator->willImplement(InvoiceInterface::class);
-        $prophecyInvoiceDecorator->isStateHold()->willReturn(false);
-        $prophecyInvoiceDecorator->isStateTransacted()->willReturn(false);
-        $prophecyInvoiceDecorator->getModel()->willReturn($prophecyInvoice->reveal());
-        $prophecyInvoiceDecorator->canCancel()->willReturn(true);
-        $prophecyInvoiceDecorator->loadInvoice()->shouldBeCalledTimes(1);
-        $prophecyInvoiceDecorator->setStateCanceled()->shouldBeCalledTimes(1);
-        $prophecyInvoiceDecorator->saveModel()->shouldBeCalledTimes(1);
-
-
-        $prophecyDB = $this->prophesize(DBInterface::class);
-        $prophecyDB->beginTransaction()->shouldBeCalledTimes(1);
-        $prophecyDB->commit()->shouldBeCalledTimes(1);
-        $prophecyDB->rollback()->shouldNotBeCalled();
+        $this->DB->beginTransaction()->shouldBeCalledTimes(1);
+        $this->DB->commit()->shouldBeCalledTimes(1);
+        $this->DB->rollback()->shouldNotBeCalled();
 
         $prophecyTransaction = $this->prophesize(TransactionDecorator::class);
         $prophecyTransaction->willImplement(TransactionInterface::class);
 
-        $prophecyDI = $this->prophesize(ServiceContainerInterface::class);
-        $prophecyDI->getDB()->willReturn($prophecyDB);
-        $prophecyDI->getTransactionDecorator()->willReturn($prophecyTransaction);
-        $prophecyDI->getInvoiceDecorator($prophecyInvoice->reveal())->willReturn($prophecyInvoiceDecorator->reveal());
+        $this->DI->getInvoiceDecorator($this->invoice->reveal())->willReturn($this->invoiceDecorator->reveal());
 
-        $module = new Module($prophecyDI->reveal());
-        $module->cancel($prophecyInvoice->reveal());
+        $module = new Module($this->DI->reveal());
+        $module->cancel($this->invoice->reveal());
     }
 
+    /**
+     * Successfully cancel an invoice which is held
+     */
     public function testOkHold(): void
     {
-        $invoice = $this->createMock(InvoiceInterface::class);
-        $invoice->method('isStateHold')->willReturn(true);
+        $amount = random_int(100, 1000) / 100;
 
-        $invoiceDecorator = $this->createMock(InvoiceDecorator::class);
-        $invoiceDecorator->method('canCancel')->willReturn(true);
-        $invoiceDecorator->method('getModel')->willReturn($invoice);
-        $invoiceDecorator->expects($this->once())->method('loadInvoice');
+        $prophecyAccountFromDecorator = $this->prophesize(AccountDecoratorInterface::class);
+        $prophecyAccountFromDecorator->repay($amount)->shouldBeCalledTimes(1);
+        $prophecyAccountFromDecorator->saveModel()->shouldBeCalledTimes(1);
 
-        $this->DI->method('getInvoiceDecorator')->willReturn($invoiceDecorator);
+        $this->invoiceDecorator->isStateHold()->willReturn(true);
+        $this->invoiceDecorator->isStateTransacted()->willReturn(false);
+        $this->invoiceDecorator->canCancel()->willReturn(true);
+        $this->invoiceDecorator->getAmount()->willReturn($amount);
+        $this->invoiceDecorator->loadInvoice()->shouldBeCalledTimes(1);
+        $this->invoiceDecorator->setStateCanceled()->shouldBeCalledTimes(1);
+        $this->invoiceDecorator->saveModel()->shouldBeCalledTimes(1);
+        $this->invoiceDecorator->getAccountFrom()->shouldBeCalledTimes(1);
 
-        $module = new Module($this->DI);
-        $module->cancel($invoice);
+        $this->DB->beginTransaction()->shouldBeCalledTimes(1);
+        $this->DB->commit()->shouldBeCalledTimes(1);
+        $this->DB->rollback()->shouldNotBeCalled();
+
+        $this->DI->getInvoiceDecorator($this->invoice->reveal())->willReturn($this->invoiceDecorator->reveal());
+        $this->DI
+            ->getAccountDecorator(new TypeToken(AccountInterface::class))
+            ->willReturn($prophecyAccountFromDecorator->reveal());
+
+        $module = new Module($this->DI->reveal());
+        $module->cancel($this->invoice->reveal());
+    }
+
+    /**
+     * Successfully cancel an invoice which is transacted
+     */
+    public function testOkTransacted(): void
+    {
+        $amount = random_int(100, 1000) / 100;
+
+        $prophecyAccountFromDecorator = $this->prophesize(AccountDecoratorInterface::class);
+        $prophecyAccountFromDecorator->add($amount)->shouldBeCalledTimes(1);
+        $prophecyAccountFromDecorator->saveModel()->shouldBeCalledTimes(1);
+
+        $prophecyAccountToDecorator = $this->prophesize(AccountDecoratorInterface::class);
+        $prophecyAccountToDecorator->repay($amount)->shouldBeCalledTimes(1);
+        $prophecyAccountToDecorator->withdraw($amount)->shouldBeCalledTimes(1);
+        $prophecyAccountToDecorator->saveModel()->shouldBeCalledTimes(1);
+
+        $this->invoiceDecorator->isStateHold()->willReturn(false);
+        $this->invoiceDecorator->isStateTransacted()->willReturn(true);
+        $this->invoiceDecorator->canCancel()->willReturn(true);
+        $this->invoiceDecorator->getAmount()->willReturn($amount);
+        $this->invoiceDecorator->loadInvoice()->shouldBeCalledTimes(1);
+        $this->invoiceDecorator->setStateCanceled()->shouldBeCalledTimes(1);
+        $this->invoiceDecorator->saveModel()->shouldBeCalledTimes(1);
+        $this->invoiceDecorator->getAccountFrom()->shouldBeCalledTimes(1);
+        $this->invoiceDecorator->getAccountTo()->shouldBeCalledTimes(1);
+
+        $this->DB->beginTransaction()->shouldBeCalledTimes(1);
+        $this->DB->commit()->shouldBeCalledTimes(1);
+        $this->DB->rollback()->shouldNotBeCalled();
+
+        $this->DI->getInvoiceDecorator($this->invoice->reveal())->willReturn($this->invoiceDecorator->reveal());
+        $this->DI
+            ->getAccountDecorator(new TypeToken(AccountInterface::class))
+            ->willReturn($prophecyAccountFromDecorator->reveal(), $prophecyAccountToDecorator->reveal());
+
+        $module = new Module($this->DI->reveal());
+        $module->cancel($this->invoice->reveal());
     }
 
     public function testWrongState(): void
     {
+        self::markTestIncomplete('Move API to Prophecy');
+
         $invoiceDecorator = $this->createMock(InvoiceDecorator::class);
         $invoiceDecorator->method('canCancel')->willReturn(false);
 
@@ -112,6 +164,8 @@ class ModuleCancelTest extends TestCase
 
     public function testException(): void
     {
+        self::markTestIncomplete('Move API to Prophecy');
+
         $invoice = $this->createMock(InvoiceInterface::class);
         $invoice->method('isStateHold')->willReturn(true);
 
@@ -125,7 +179,7 @@ class ModuleCancelTest extends TestCase
 
         $this->DI->method('getInvoiceDecorator')->willReturn($invoiceDecorator);
 
-        $this->db->expects($this->once())->method('rollback');
+        $this->DB->expects($this->once())->method('rollback');
         $invoiceDecorator->expects($this->once())->method('loadInvoice');
 
         $module = new Module($this->DI);

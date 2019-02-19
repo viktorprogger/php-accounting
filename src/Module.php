@@ -105,7 +105,7 @@ class Module
         $db->beginTransaction();
 
         try {
-            $amount = $invoice->getAmount();
+            $amount = $invoiceDecorator->getAmount();
 
             $accountFrom = $invoiceDecorator->getAccountFrom();
             $accountFromDecorator = $this->container->getAccountDecorator($accountFrom);
@@ -121,9 +121,9 @@ class Module
             $accountToDecorator->saveModel();
 
             if ($hold) {
-                $invoice->setStateTransacted();
+                $invoiceDecorator->setStateTransacted();
             } else {
-                $invoice->setStateSuccess();
+                $invoiceDecorator->setStateSuccess();
             }
             $invoiceDecorator->saveModel();
 
@@ -166,10 +166,10 @@ class Module
         try {
             $account = $invoiceDecorator->getAccountTo();
             $accountDecorator = $this->container->getAccountDecorator($account);
-            $accountDecorator->repay($invoice->getAmount());
+            $accountDecorator->repay($invoiceDecorator->getAmount());
             $accountDecorator->saveModel();
 
-            $invoice->setStateSuccess();
+            $invoiceDecorator->setStateSuccess();
             $invoiceDecorator->saveModel();
 
             $transactionDecorator->setStateSuccess();
@@ -211,13 +211,13 @@ class Module
             if ($invoiceDecorator->isStateTransacted()) {
                 $accountFrom = $invoiceDecorator->getAccountFrom();
                 $accountFromDecorator = $this->container->getAccountDecorator($accountFrom);
-                $accountFromDecorator->add($invoice->getAmount());
+                $accountFromDecorator->add($invoiceDecorator->getAmount());
                 $accountFromDecorator->saveModel();
 
                 $accountTo = $invoiceDecorator->getAccountTo();
                 $accountToDecorator = $this->container->getAccountDecorator($accountTo);
-                $accountToDecorator->repay($invoice->getAmount());
-                $accountToDecorator->withdraw($invoice->getAmount());
+                $accountToDecorator->repay($invoiceDecorator->getAmount());
+                $accountToDecorator->withdraw($invoiceDecorator->getAmount());
                 $accountToDecorator->saveModel();
             }
 
