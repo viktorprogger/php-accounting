@@ -8,13 +8,13 @@ use miolae\Accounting\Interfaces\Models\AccountInterface;
 use miolae\Accounting\Traits\ModelMixinTrait;
 
 /**
- * Class AccountDecoratorDecorator
+ * Class AccountDecorator
  *
  * @package miolae\Accounting\Decorators
  *
  * @mixin AccountInterface
  */
-abstract class AccountDecoratorDecorator implements AccountDecoratorInterface
+abstract class AccountDecorator implements AccountDecoratorInterface
 {
     use ModelMixinTrait;
 
