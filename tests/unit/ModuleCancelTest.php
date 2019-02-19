@@ -5,6 +5,7 @@ use miolae\Accounting\Decorators\TransactionDecorator;
 use miolae\Accounting\Exceptions\WrongStateException;
 use miolae\Accounting\Interfaces\ExceptionInterface;
 use miolae\Accounting\Interfaces\Models\InvoiceInterface;
+use miolae\Accounting\Interfaces\Models\TransactionInterface;
 use miolae\Accounting\Interfaces\ServiceContainerInterface;
 use miolae\Accounting\Interfaces\Services\DBInterface;
 use miolae\Accounting\Module;
@@ -46,6 +47,38 @@ class ModuleCancelTest extends TestCase
 
         $module = new Module($this->DI);
         $module->cancel($invoice);
+    }
+
+    public function testOkPro(): void
+    {
+        $prophecyInvoice = $this->prophesize(InvoiceInterface::class);
+
+        $prophecyInvoiceDecorator = $this->prophesize(InvoiceDecorator::class);
+        $prophecyInvoiceDecorator->willImplement(InvoiceInterface::class);
+        $prophecyInvoiceDecorator->isStateHold()->willReturn(false);
+        $prophecyInvoiceDecorator->isStateTransacted()->willReturn(false);
+        $prophecyInvoiceDecorator->getModel()->willReturn($prophecyInvoice->reveal());
+        $prophecyInvoiceDecorator->canCancel()->willReturn(true);
+        $prophecyInvoiceDecorator->loadInvoice()->shouldBeCalledTimes(1);
+        $prophecyInvoiceDecorator->setStateCanceled()->shouldBeCalledTimes(1);
+        $prophecyInvoiceDecorator->saveModel()->shouldBeCalledTimes(1);
+
+
+        $prophecyDB = $this->prophesize(DBInterface::class);
+        $prophecyDB->beginTransaction()->shouldBeCalledTimes(1);
+        $prophecyDB->commit()->shouldBeCalledTimes(1);
+        $prophecyDB->rollback()->shouldNotBeCalled();
+
+        $prophecyTransaction = $this->prophesize(TransactionDecorator::class);
+        $prophecyTransaction->willImplement(TransactionInterface::class);
+
+        $prophecyDI = $this->prophesize(ServiceContainerInterface::class);
+        $prophecyDI->getDB()->willReturn($prophecyDB);
+        $prophecyDI->getTransactionDecorator()->willReturn($prophecyTransaction);
+        $prophecyDI->getInvoiceDecorator($prophecyInvoice->reveal())->willReturn($prophecyInvoiceDecorator->reveal());
+
+        $module = new Module($prophecyDI->reveal());
+        $module->cancel($prophecyInvoice->reveal());
     }
 
     public function testOkHold(): void

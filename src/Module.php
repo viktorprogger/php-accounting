@@ -196,7 +196,6 @@ class Module
 
         $transactionDecorator = $this->container->getTransactionDecorator();
         $transactionDecorator->createNewTransaction($invoice, $invoice->getStateCanceled());
-        $transactionDecorator->setStateNew();
         $transactionDecorator->saveModel();
 
         $db->beginTransaction();
