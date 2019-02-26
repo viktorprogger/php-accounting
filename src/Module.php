@@ -2,6 +2,8 @@
 
 namespace miolae\Accounting;
 
+use miolae\Accounting\Exceptions\SameAccountException;
+use miolae\Accounting\Exceptions\WrongAmountException;
 use miolae\Accounting\Exceptions\WrongStateException;
 use miolae\Accounting\Interfaces\ExceptionInterface;
 use miolae\Accounting\Interfaces\Models\AccountInterface;
@@ -27,6 +29,14 @@ class Module
      */
     public function createInvoice(AccountInterface $accountFrom, AccountInterface $accountTo, float $amount): InvoiceInterface
     {
+        if ($amount <= 0) {
+            throw new WrongAmountException($amount);
+        }
+
+        if ($accountFrom === $accountTo) {
+            throw new SameAccountException();
+        }
+
         $invoiceDecorator = $this->container->getInvoiceDecorator();
         $invoiceDecorator->createNewInvoice($accountFrom, $accountTo, $amount);
         $invoiceDecorator->saveModel();
