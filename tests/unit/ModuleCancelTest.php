@@ -67,8 +67,13 @@ class ModuleCancelTest extends TestCase
         $this->DB->commit()->shouldBeCalledTimes(1);
         $this->DB->rollback()->shouldNotBeCalled();
 
+        /** @var TransactionDecorator|TransactionInterface|ObjectProphecy $prophecyTransaction */
         $prophecyTransaction = $this->prophesize(TransactionDecorator::class);
         $prophecyTransaction->willImplement(TransactionInterface::class);
+        $prophecyTransaction->createNewTransaction($this->invoice->reveal(), null);
+        $prophecyTransaction->setStateSuccess()->shouldBeCalledTimes(1);
+        $prophecyTransaction->saveModel()->shouldBeCalledTimes(2);
+        $this->DI->getTransactionDecorator()->willReturn($prophecyTransaction->reveal());
 
         $module = new Module($this->DI->reveal());
         $module->cancel($this->invoice->reveal());
@@ -97,6 +102,14 @@ class ModuleCancelTest extends TestCase
         $this->DB->beginTransaction()->shouldBeCalledTimes(1);
         $this->DB->commit()->shouldBeCalledTimes(1);
         $this->DB->rollback()->shouldNotBeCalled();
+
+        /** @var TransactionDecorator|TransactionInterface|ObjectProphecy $prophecyTransaction */
+        $prophecyTransaction = $this->prophesize(TransactionDecorator::class);
+        $prophecyTransaction->willImplement(TransactionInterface::class);
+        $prophecyTransaction->createNewTransaction($this->invoice->reveal(), null);
+        $prophecyTransaction->setStateSuccess()->shouldBeCalledTimes(1);
+        $prophecyTransaction->saveModel()->shouldBeCalledTimes(2);
+        $this->DI->getTransactionDecorator()->willReturn($prophecyTransaction->reveal());
 
         $this->DI
             ->getAccountDecorator(new TypeToken(AccountInterface::class))
@@ -135,6 +148,14 @@ class ModuleCancelTest extends TestCase
         $this->DB->beginTransaction()->shouldBeCalledTimes(1);
         $this->DB->commit()->shouldBeCalledTimes(1);
         $this->DB->rollback()->shouldNotBeCalled();
+
+        /** @var TransactionDecorator|TransactionInterface|ObjectProphecy $prophecyTransaction */
+        $prophecyTransaction = $this->prophesize(TransactionDecorator::class);
+        $prophecyTransaction->willImplement(TransactionInterface::class);
+        $prophecyTransaction->createNewTransaction($this->invoice->reveal(), null);
+        $prophecyTransaction->setStateSuccess()->shouldBeCalledTimes(1);
+        $prophecyTransaction->saveModel()->shouldBeCalledTimes(2);
+        $this->DI->getTransactionDecorator()->willReturn($prophecyTransaction->reveal());
 
         $this->DI
             ->getAccountDecorator(new TypeToken(AccountInterface::class))
