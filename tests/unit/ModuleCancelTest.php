@@ -156,6 +156,7 @@ class ModuleCancelTest extends TestCase
     }
 
     // TODO Need to test exceptions on all stages in all module methods
+    // TODO Maybe it's a way to make another class for exception checking
     public function testException(): void
     {
         /** @var ExceptionInterface|ObjectProphecy $exception */
@@ -175,7 +176,7 @@ class ModuleCancelTest extends TestCase
         $this->transaction->createNewTransaction($this->invoice->reveal(), null)->shouldBeCalledTimes(1);
         $this->transaction->saveModel()->shouldBeCalledTimes(2);
         $this->transaction->setStateFail()->shouldBeCalledTimes(1);
-        $this->transaction->setStateSuccess()->shouldNotBeCalled(1);
+        $this->transaction->setStateSuccess()->shouldNotBeCalled();
 
         $module = new Module($this->DI->reveal());
         $module->cancel($this->invoice->reveal());
