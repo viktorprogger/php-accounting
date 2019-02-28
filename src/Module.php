@@ -53,14 +53,13 @@ class Module
     {
         $invoiceDecorator = $this->container->getInvoiceDecorator($invoice);
         if (!$invoiceDecorator->canHold()) {
-            throw new WrongStateException('Invoice can\'t be held because its state is not "created"');
+            throw new WrongStateException();
         }
 
         $db = $this->container->getDB();
 
         $transactionDecorator = $this->container->getTransactionDecorator();
-        $transactionDecorator->createNewTransaction($invoice, $invoice->getStateHold());
-        $transactionDecorator->setStateNew();
+        $transactionDecorator->createNewTransaction($invoice, $invoiceDecorator->getStateHold());
         $transactionDecorator->saveModel();
 
         $db->beginTransaction();
@@ -68,10 +67,10 @@ class Module
         try {
             $accountFrom = $invoiceDecorator->getAccountFrom();
             $accountDecorator = $this->container->getAccountDecorator($accountFrom);
-            $accountDecorator->hold($invoice->getAmount());
+            $accountDecorator->hold($invoiceDecorator->getAmount());
             $accountDecorator->saveModel();
 
-            $invoice->setStateHold();
+            $invoiceDecorator->setStateHold();
             $invoiceDecorator->saveModel();
 
             $transactionDecorator->setStateSuccess();
@@ -109,7 +108,6 @@ class Module
 
         $transactionDecorator = $this->container->getTransactionDecorator();
         $transactionDecorator->createNewTransaction($invoice, $stateTo);
-        $transactionDecorator->setStateNew();
         $transactionDecorator->saveModel();
 
         $db->beginTransaction();

@@ -14,7 +14,7 @@ class ModuleCreateInvoiceTest extends TestCase
 {
     /** @var ServiceContainerInterface|ObjectProphecy $DI */
     protected $DI;
-    /** @var ServiceContainerInterface|ObjectProphecy $DI */
+    /** @var InvoiceDecorator|ObjectProphecy $DI */
     protected $invoiceDecorator;
     /** @var AccountInterface */
     protected $accountFrom;
