@@ -9,8 +9,6 @@ use miolae\Accounting\Interfaces\DTO\InvoiceInterface;
  * Interface InvoiceServiceInterface
  *
  * @package miolae\Accounting\Interfaces\Decorators
- *
- * @mixin InvoiceInterface
  */
 interface InvoiceServiceInterface
 {

@@ -9,8 +9,6 @@ use miolae\Accounting\Interfaces\DTO\TransactionInterface;
  * Interface TransactionServiceInterface
  *
  * @package miolae\Accounting\Interfaces\Decorators
- *
- * @mixin TransactionInterface
  */
 interface TransactionServiceInterface
 {

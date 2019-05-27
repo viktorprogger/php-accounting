@@ -8,8 +8,6 @@ use miolae\Accounting\Interfaces\DTO\AccountInterface;
  * Interface AccountServiceInterface
  *
  * @package miolae\Accounting\Interfaces\Decorators
- *
- * @mixin AccountInterface
  */
 interface AccountServiceInterface
 {
