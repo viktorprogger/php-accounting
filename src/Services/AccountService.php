@@ -1,23 +1,18 @@
 <?php
 
-namespace miolae\Accounting\Decorators;
+namespace miolae\Accounting\Services;
 
 use miolae\Accounting\Exceptions\OutOfFundsException;
-use miolae\Accounting\Interfaces\Decorators\AccountDecoratorInterface;
-use miolae\Accounting\Interfaces\Models\AccountInterface;
-use miolae\Accounting\Traits\ModelMixinTrait;
+use miolae\Accounting\Interfaces\Decorators\AccountServiceInterface;
+use miolae\Accounting\Interfaces\DTO\AccountInterface;
 
 /**
- * Class AccountDecorator
+ * Class AccountService
  *
- * @package miolae\Accounting\Decorators
- *
- * @mixin AccountInterface
+ * @package miolae\Accounting\Services
  */
-abstract class AccountDecorator implements AccountDecoratorInterface
+abstract class AccountService implements AccountServiceInterface
 {
-    use ModelMixinTrait;
-
     /** @var AccountInterface */
     protected $model;
 

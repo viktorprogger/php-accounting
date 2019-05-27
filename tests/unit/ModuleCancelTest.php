@@ -1,10 +1,10 @@
 <?php
 
-use miolae\Accounting\Decorators\InvoiceDecorator;
-use miolae\Accounting\Decorators\TransactionDecorator;
+use miolae\Accounting\Services\InvoiceService;
+use miolae\Accounting\Services\TransactionService;
 use miolae\Accounting\Exceptions\WrongStateException;
 use miolae\Accounting\Interfaces\ExceptionInterface;
-use miolae\Accounting\Interfaces\Models\InvoiceInterface;
+use miolae\Accounting\Interfaces\DTO\InvoiceInterface;
 use miolae\Accounting\Interfaces\ServiceContainerInterface;
 use miolae\Accounting\Interfaces\Services\DBInterface;
 use miolae\Accounting\Module;
@@ -24,7 +24,7 @@ class ModuleCancelTest extends TestCase
         $this->DI = $this->createMock(ServiceContainerInterface::class);
         $this->db = $this->createMock(DBInterface::class);
 
-        $transactionDecorator = $this->createMock(TransactionDecorator::class);
+        $transactionDecorator = $this->createMock(TransactionService::class);
 
         $this->DI->method('getDB')->willReturn($this->db);
         $this->DI->method('getTransactionDecorator')->willReturn($transactionDecorator);
@@ -35,7 +35,7 @@ class ModuleCancelTest extends TestCase
         $invoice = $this->createMock(InvoiceInterface::class);
         $invoice->method('isStateHold')->willReturn(false);
 
-        $invoiceDecorator = $this->createMock(InvoiceDecorator::class);
+        $invoiceDecorator = $this->createMock(InvoiceService::class);
         $invoiceDecorator->method('canCancel')->willReturn(true);
         $invoiceDecorator->method('getModel')->willReturn($invoice);
 
@@ -53,7 +53,7 @@ class ModuleCancelTest extends TestCase
         $invoice = $this->createMock(InvoiceInterface::class);
         $invoice->method('isStateHold')->willReturn(true);
 
-        $invoiceDecorator = $this->createMock(InvoiceDecorator::class);
+        $invoiceDecorator = $this->createMock(InvoiceService::class);
         $invoiceDecorator->method('canCancel')->willReturn(true);
         $invoiceDecorator->method('getModel')->willReturn($invoice);
         $invoiceDecorator->expects($this->once())->method('loadInvoice');
@@ -66,7 +66,7 @@ class ModuleCancelTest extends TestCase
 
     public function testWrongState(): void
     {
-        $invoiceDecorator = $this->createMock(InvoiceDecorator::class);
+        $invoiceDecorator = $this->createMock(InvoiceService::class);
         $invoiceDecorator->method('canCancel')->willReturn(false);
 
         $this->DI->method('getInvoiceDecorator')->willReturn($invoiceDecorator);
@@ -85,7 +85,7 @@ class ModuleCancelTest extends TestCase
         /** @var ExceptionInterface $exception */
         $exception = $this->createMock(ExceptionInterface::class);
 
-        $invoiceDecorator = $this->createMock(InvoiceDecorator::class);
+        $invoiceDecorator = $this->createMock(InvoiceService::class);
         $invoiceDecorator->method('canCancel')->willReturn(true);
         /** @noinspection PhpParamsInspection */
         $invoiceDecorator->method('saveModel')->willThrowException($exception);

@@ -1,23 +1,18 @@
 <?php
 
-namespace miolae\Accounting\Decorators;
+namespace miolae\Accounting\Services;
 
-use miolae\Accounting\Interfaces\Decorators\InvoiceDecoratorInterface;
-use miolae\Accounting\Interfaces\Models\AccountInterface;
-use miolae\Accounting\Interfaces\Models\InvoiceInterface;
-use miolae\Accounting\Traits\ModelMixinTrait;
+use miolae\Accounting\Interfaces\Decorators\InvoiceServiceInterface;
+use miolae\Accounting\Interfaces\DTO\AccountInterface;
+use miolae\Accounting\Interfaces\DTO\InvoiceInterface;
 
 /**
- * Class InvoiceDecorator
+ * Class InvoiceService
  *
- * @package miolae\Accounting\Decorators
- *
- * @mixin InvoiceInterface
+ * @package miolae\Accounting\Services
  */
-abstract class InvoiceDecorator implements InvoiceDecoratorInterface
+abstract class InvoiceService implements InvoiceServiceInterface
 {
-    use ModelMixinTrait;
-
     /** @var InvoiceInterface */
     protected $model;
 
