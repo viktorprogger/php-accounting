@@ -2,7 +2,7 @@
 
 namespace miolae\Accounting\Services;
 
-use miolae\Accounting\Interfaces\Decorators\InvoiceServiceInterface;
+use miolae\Accounting\Interfaces\Services\InvoiceServiceInterface;
 use miolae\Accounting\Interfaces\DTO\AccountInterface;
 use miolae\Accounting\Interfaces\DTO\InvoiceInterface;
 

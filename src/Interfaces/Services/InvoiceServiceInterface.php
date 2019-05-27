@@ -1,6 +1,6 @@
 <?php
 
-namespace miolae\Accounting\Interfaces\Decorators;
+namespace miolae\Accounting\Interfaces\Services;
 
 use miolae\Accounting\Interfaces\DTO\AccountInterface;
 use miolae\Accounting\Interfaces\DTO\InvoiceInterface;

@@ -3,7 +3,7 @@
 namespace miolae\Accounting\Services;
 
 use miolae\Accounting\Exceptions\OutOfFundsException;
-use miolae\Accounting\Interfaces\Decorators\AccountServiceInterface;
+use miolae\Accounting\Interfaces\Services\AccountServiceInterface;
 use miolae\Accounting\Interfaces\DTO\AccountInterface;
 
 /**
