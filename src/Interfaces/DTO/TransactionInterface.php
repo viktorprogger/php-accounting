@@ -1,6 +1,6 @@
 <?php
 
-namespace miolae\Accounting\Interfaces\Models;
+namespace miolae\Accounting\Interfaces\DTO;
 
 interface TransactionInterface
 {

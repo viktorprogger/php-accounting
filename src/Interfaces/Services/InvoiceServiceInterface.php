@@ -1,18 +1,16 @@
 <?php
 
-namespace miolae\Accounting\Interfaces\Decorators;
+namespace miolae\Accounting\Interfaces\Services;
 
-use miolae\Accounting\Interfaces\Models\AccountInterface;
-use miolae\Accounting\Interfaces\Models\InvoiceInterface;
+use miolae\Accounting\Interfaces\DTO\AccountInterface;
+use miolae\Accounting\Interfaces\DTO\InvoiceInterface;
 
 /**
- * Interface InvoiceDecoratorInterface
+ * Interface InvoiceServiceInterface
  *
  * @package miolae\Accounting\Interfaces\Decorators
- *
- * @mixin InvoiceInterface
  */
-interface InvoiceDecoratorInterface
+interface InvoiceServiceInterface
 {
     public function __construct(InvoiceInterface $invoice);
 

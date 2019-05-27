@@ -1,14 +1,14 @@
 <?php
 
-use miolae\Accounting\Decorators\AccountDecorator;
-use miolae\Accounting\Decorators\InvoiceDecorator;
-use miolae\Accounting\Decorators\TransactionDecorator;
-use miolae\Accounting\Interfaces\Models\AccountInterface;
-use miolae\Accounting\Interfaces\Models\InvoiceInterface;
-use miolae\Accounting\Interfaces\Models\TransactionInterface;
+use miolae\Accounting\Interfaces\DTO\AccountInterface;
+use miolae\Accounting\Interfaces\DTO\InvoiceInterface;
+use miolae\Accounting\Interfaces\DTO\TransactionInterface;
 use miolae\Accounting\Interfaces\ServiceContainerInterface;
 use miolae\Accounting\Interfaces\Services\DBInterface;
 use miolae\Accounting\Module;
+use miolae\Accounting\Services\AccountService;
+use miolae\Accounting\Services\InvoiceService;
+use miolae\Accounting\Services\TransactionService;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument\Token\TypeToken;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -24,16 +24,19 @@ class ModuleHoldTest extends TestCase
     /** @var DBInterface|ObjectProphecy */
     protected $DB;
 
-    /** @var InvoiceDecorator|InvoiceInterface|ObjectProphecy $DI */
-    protected $invoiceDecorator;
-
-    /** @var TransactionDecorator|TransactionInterface|ObjectProphecy */
-    protected $transaction;
-
     /** @var InvoiceInterface|ObjectProphecy */
     protected $invoice;
 
-    /** @var AccountDecorator|AccountInterface */
+    /** @var InvoiceService|ObjectProphecy $DI */
+    protected $invoiceService;
+
+    /** @var TransactionInterface|ObjectProphecy */
+    protected $transaction;
+
+    /** @var TransactionService|ObjectProphecy */
+    protected $transactionService;
+
+    /** @var AccountService|AccountInterface */
     protected $accountFrom;
 
     protected function setUp()
@@ -44,34 +47,37 @@ class ModuleHoldTest extends TestCase
         $this->DI = $this->prophesize(ServiceContainerInterface::class);
         $this->DB = $this->prophesize(DBInterface::class);
 
-        $this->transaction = $this->prophesize(TransactionDecorator::class);
-        $this->transaction->willImplement(TransactionInterface::class);
+        $this->transaction = $this->prophesize(TransactionInterface::class);
+        $this->transactionService = $this->prophesize(TransactionService::class);
+        $this->transactionService->getModel()->willReturn($this->transaction->reveal());
 
         $this->invoice = $this->prophesize(InvoiceInterface::class);
-        $this->accountFrom = $this->prophesize(AccountDecorator::class);
+        $this->accountFrom = $this->prophesize(AccountService::class);
 
-        $this->invoiceDecorator = $this->prophesize(InvoiceDecorator::class);
-        $this->invoiceDecorator->willImplement(InvoiceInterface::class);
-        $this->invoiceDecorator->getStateHold()->willReturn(self::STATE_HOLD);
-        $this->invoiceDecorator->loadInvoice()->willReturn($this->prophesize(InvoiceInterface::class)->reveal());
-        $this->invoiceDecorator->getAmount()->willReturn(self::AMOUNT);
+        $this->invoice->getStateHold()->willReturn(self::STATE_HOLD);
+        $this->invoice->getAmount()->willReturn(self::AMOUNT);
+
+        $this->invoiceService = $this->prophesize(InvoiceService::class);
+        $this->invoiceService->loadInvoice()->willReturn($this->invoice->reveal());
+        $this->invoiceService->getModel()->willReturn($this->invoice->reveal());
 
         $this->DI->getDB()->willReturn($this->DB->reveal());
-        $this->DI->getTransactionDecorator()->willReturn($this->transaction->reveal());
-        $this->DI->getInvoiceDecorator($this->invoice->reveal())->willReturn($this->invoiceDecorator->reveal());
-        $this->DI->getAccountDecorator(new TypeToken(AccountInterface::class))->willReturn($this->accountFrom->reveal());
+        $this->DI->getTransactionService()->willReturn($this->transactionService->reveal());
+        $this->DI->getInvoiceService($this->invoice->reveal())->willReturn($this->invoiceService->reveal());
+        $this->DI->getAccountService(new TypeToken(AccountInterface::class))->willReturn($this->accountFrom->reveal());
     }
 
     public function testOk()
     {
-        $this->invoiceDecorator->canHold()->willReturn(true);
-        $this->invoiceDecorator->getAccountFrom()->shouldBeCalledTimes(1);
-        $this->invoiceDecorator->setStateHold()->shouldBeCalledTimes(1);
-        $this->invoiceDecorator->saveModel()->shouldBeCalledTimes(1);
-        $this->invoiceDecorator->loadInvoice()->shouldBeCalledTimes(1);
+        $this->invoice->setStateHold()->shouldBeCalledTimes(1);
 
-        $this->transaction->createNewTransaction($this->invoice->reveal(), self::STATE_HOLD)->shouldBeCalledTimes(1);
-        $this->transaction->saveModel()->shouldBeCalledTimes(2);
+        $this->invoiceService->canHold()->willReturn(true);
+        $this->invoiceService->getAccountFrom()->shouldBeCalledTimes(1);
+        $this->invoiceService->saveModel()->shouldBeCalledTimes(1);
+        $this->invoiceService->loadInvoice()->shouldBeCalledTimes(1);
+
+        $this->transactionService->createNewTransaction($this->invoice->reveal(), self::STATE_HOLD)->shouldBeCalledTimes(1);
+        $this->transactionService->saveModel()->shouldBeCalledTimes(2);
         $this->transaction->setStateSuccess()->shouldBeCalledTimes(1);
         $this->transaction->setStateFail()->shouldNotBeCalled();
 

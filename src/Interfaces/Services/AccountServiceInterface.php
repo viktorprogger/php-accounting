@@ -1,17 +1,15 @@
 <?php
 
-namespace miolae\Accounting\Interfaces\Decorators;
+namespace miolae\Accounting\Interfaces\Services;
 
-use miolae\Accounting\Interfaces\Models\AccountInterface;
+use miolae\Accounting\Interfaces\DTO\AccountInterface;
 
 /**
- * Interface AccountDecoratorInterface
+ * Interface AccountServiceInterface
  *
  * @package miolae\Accounting\Interfaces\Decorators
- *
- * @mixin AccountInterface
  */
-interface AccountDecoratorInterface
+interface AccountServiceInterface
 {
     public function getModel(): AccountInterface;
 

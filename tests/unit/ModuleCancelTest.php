@@ -1,13 +1,13 @@
 <?php
 
-use miolae\Accounting\Decorators\InvoiceDecorator;
-use miolae\Accounting\Decorators\TransactionDecorator;
+use miolae\Accounting\Services\InvoiceService;
+use miolae\Accounting\Services\TransactionService;
 use miolae\Accounting\Exceptions\WrongStateException;
-use miolae\Accounting\Interfaces\Decorators\AccountDecoratorInterface;
+use miolae\Accounting\Interfaces\Services\AccountServiceInterface;
 use miolae\Accounting\Interfaces\ExceptionInterface;
-use miolae\Accounting\Interfaces\Models\AccountInterface;
-use miolae\Accounting\Interfaces\Models\InvoiceInterface;
-use miolae\Accounting\Interfaces\Models\TransactionInterface;
+use miolae\Accounting\Interfaces\DTO\AccountInterface;
+use miolae\Accounting\Interfaces\DTO\InvoiceInterface;
+use miolae\Accounting\Interfaces\DTO\TransactionInterface;
 use miolae\Accounting\Interfaces\ServiceContainerInterface;
 use miolae\Accounting\Interfaces\Services\DBInterface;
 use miolae\Accounting\Module;
@@ -23,14 +23,17 @@ class ModuleCancelTest extends TestCase
     /** @var DBInterface|ObjectProphecy */
     protected $DB;
 
-    /** @var TransactionDecorator|TransactionInterface|ObjectProphecy */
+    /** @var TransactionInterface|ObjectProphecy */
     protected $transaction;
+
+    /** @var TransactionService|ObjectProphecy */
+    protected $transactionService;
 
     /** @var InvoiceInterface|ObjectProphecy */
     protected $invoice;
 
-    /** @var InvoiceDecorator|InvoiceInterface|ObjectProphecy */
-    protected $invoiceDecorator;
+    /** @var InvoiceService|ObjectProphecy */
+    protected $invoiceService;
 
     protected function setUp()
     {
@@ -38,17 +41,18 @@ class ModuleCancelTest extends TestCase
         $this->DI = $this->prophesize(ServiceContainerInterface::class);
         $this->DB = $this->prophesize(DBInterface::class);
 
-        $this->transaction = $this->prophesize(TransactionDecorator::class);
-        $this->transaction->willImplement(TransactionInterface::class);
+        $this->transaction = $this->prophesize(TransactionInterface::class);
+        $this->transactionService = $this->prophesize(TransactionService::class);
+        $this->transactionService->getModel()->willReturn($this->transaction->reveal());
 
         $this->invoice = $this->prophesize(InvoiceInterface::class);
 
-        $this->invoiceDecorator = $this->prophesize(InvoiceDecorator::class);
-        $this->invoiceDecorator->willImplement(InvoiceInterface::class);
+        $this->invoiceService = $this->prophesize(InvoiceService::class);
+        $this->invoiceService->getModel()->willReturn($this->invoice);
 
         $this->DI->getDB()->willReturn($this->DB->reveal());
-        $this->DI->getTransactionDecorator()->willReturn($this->transaction->reveal());
-        $this->DI->getInvoiceDecorator($this->invoice->reveal())->willReturn($this->invoiceDecorator);
+        $this->DI->getTransactionService()->willReturn($this->transactionService->reveal());
+        $this->DI->getInvoiceService($this->invoice->reveal())->willReturn($this->invoiceService);
     }
 
     /**
@@ -56,24 +60,21 @@ class ModuleCancelTest extends TestCase
      */
     public function testOk(): void
     {
-        $this->invoiceDecorator->isStateHold()->willReturn(false);
-        $this->invoiceDecorator->isStateTransacted()->willReturn(false);
-        $this->invoiceDecorator->canCancel()->willReturn(true);
-        $this->invoiceDecorator->loadInvoice()->shouldBeCalledTimes(1);
-        $this->invoiceDecorator->setStateCanceled()->shouldBeCalledTimes(1);
-        $this->invoiceDecorator->saveModel()->shouldBeCalledTimes(1);
+        $this->invoice->isStateHold()->willReturn(false);
+        $this->invoice->isStateTransacted()->willReturn(false);
+        $this->invoice->setStateCanceled()->shouldBeCalledTimes(1);
+        $this->invoice->getStateCanceled()->shouldBeCalledTimes(1);
+        $this->invoiceService->canCancel()->willReturn(true);
+        $this->invoiceService->loadInvoice()->shouldBeCalledTimes(1);
+        $this->invoiceService->saveModel()->shouldBeCalledTimes(1);
 
         $this->DB->beginTransaction()->shouldBeCalledTimes(1);
         $this->DB->commit()->shouldBeCalledTimes(1);
         $this->DB->rollback()->shouldNotBeCalled();
 
-        /** @var TransactionDecorator|TransactionInterface|ObjectProphecy $prophecyTransaction */
-        $prophecyTransaction = $this->prophesize(TransactionDecorator::class);
-        $prophecyTransaction->willImplement(TransactionInterface::class);
-        $prophecyTransaction->createNewTransaction($this->invoice->reveal(), null);
-        $prophecyTransaction->setStateSuccess()->shouldBeCalledTimes(1);
-        $prophecyTransaction->saveModel()->shouldBeCalledTimes(2);
-        $this->DI->getTransactionDecorator()->willReturn($prophecyTransaction->reveal());
+        $this->transaction->setStateSuccess()->shouldBeCalledTimes(1);
+        $this->transactionService->createNewTransaction($this->invoice->reveal(), null);
+        $this->transactionService->saveModel()->shouldBeCalledTimes(2);
 
         $module = new Module($this->DI->reveal());
         $module->cancel($this->invoice->reveal());
@@ -86,34 +87,33 @@ class ModuleCancelTest extends TestCase
     {
         $amount = random_int(100, 1000) / 100;
 
-        $prophecyAccountFromDecorator = $this->prophesize(AccountDecoratorInterface::class);
-        $prophecyAccountFromDecorator->repay($amount)->shouldBeCalledTimes(1);
-        $prophecyAccountFromDecorator->saveModel()->shouldBeCalledTimes(1);
+        $prophecyAccountFromService = $this->prophesize(AccountServiceInterface::class);
+        $prophecyAccountFromService->repay($amount)->shouldBeCalledTimes(1);
+        $prophecyAccountFromService->saveModel()->shouldBeCalledTimes(1);
 
-        $this->invoiceDecorator->isStateHold()->willReturn(true);
-        $this->invoiceDecorator->isStateTransacted()->willReturn(false);
-        $this->invoiceDecorator->canCancel()->willReturn(true);
-        $this->invoiceDecorator->getAmount()->willReturn($amount);
-        $this->invoiceDecorator->loadInvoice()->shouldBeCalledTimes(1);
-        $this->invoiceDecorator->setStateCanceled()->shouldBeCalledTimes(1);
-        $this->invoiceDecorator->saveModel()->shouldBeCalledTimes(1);
-        $this->invoiceDecorator->getAccountFrom()->shouldBeCalledTimes(1);
+        $this->invoice->isStateHold()->willReturn(true);
+        $this->invoice->isStateTransacted()->willReturn(false);
+        $this->invoice->getAmount()->willReturn($amount);
+        $this->invoice->setStateCanceled()->shouldBeCalledTimes(1);
+        $this->invoice->getStateCanceled()->shouldBeCalledTimes(1);
+
+        $this->invoiceService->canCancel()->willReturn(true);
+        $this->invoiceService->loadInvoice()->shouldBeCalledTimes(1);
+        $this->invoiceService->saveModel()->shouldBeCalledTimes(1);
+        $this->invoiceService->getAccountFrom()->shouldBeCalledTimes(1);
 
         $this->DB->beginTransaction()->shouldBeCalledTimes(1);
         $this->DB->commit()->shouldBeCalledTimes(1);
         $this->DB->rollback()->shouldNotBeCalled();
 
-        /** @var TransactionDecorator|TransactionInterface|ObjectProphecy $prophecyTransaction */
-        $prophecyTransaction = $this->prophesize(TransactionDecorator::class);
-        $prophecyTransaction->willImplement(TransactionInterface::class);
-        $prophecyTransaction->createNewTransaction($this->invoice->reveal(), null);
-        $prophecyTransaction->setStateSuccess()->shouldBeCalledTimes(1);
-        $prophecyTransaction->saveModel()->shouldBeCalledTimes(2);
-        $this->DI->getTransactionDecorator()->willReturn($prophecyTransaction->reveal());
+        $this->transaction->setStateSuccess()->shouldBeCalledTimes(1);
+        $this->transactionService->createNewTransaction($this->invoice->reveal(), null);
+        $this->transactionService->saveModel()->shouldBeCalledTimes(2);
+        $this->DI->getTransactionService()->willReturn($this->transactionService->reveal());
 
         $this->DI
-            ->getAccountDecorator(new TypeToken(AccountInterface::class))
-            ->willReturn($prophecyAccountFromDecorator->reveal());
+            ->getAccountService(new TypeToken(AccountInterface::class))
+            ->willReturn($prophecyAccountFromService->reveal());
 
         $module = new Module($this->DI->reveal());
         $module->cancel($this->invoice->reveal());
@@ -126,40 +126,39 @@ class ModuleCancelTest extends TestCase
     {
         $amount = random_int(100, 1000) / 100;
 
-        $prophecyAccountFromDecorator = $this->prophesize(AccountDecoratorInterface::class);
-        $prophecyAccountFromDecorator->add($amount)->shouldBeCalledTimes(1);
-        $prophecyAccountFromDecorator->saveModel()->shouldBeCalledTimes(1);
+        $prophecyAccountFromService = $this->prophesize(AccountServiceInterface::class);
+        $prophecyAccountFromService->add($amount)->shouldBeCalledTimes(1);
+        $prophecyAccountFromService->saveModel()->shouldBeCalledTimes(1);
 
-        $prophecyAccountToDecorator = $this->prophesize(AccountDecoratorInterface::class);
-        $prophecyAccountToDecorator->repay($amount)->shouldBeCalledTimes(1);
-        $prophecyAccountToDecorator->withdraw($amount)->shouldBeCalledTimes(1);
-        $prophecyAccountToDecorator->saveModel()->shouldBeCalledTimes(1);
+        $prophecyAccountToService = $this->prophesize(AccountServiceInterface::class);
+        $prophecyAccountToService->repay($amount)->shouldBeCalledTimes(1);
+        $prophecyAccountToService->withdraw($amount)->shouldBeCalledTimes(1);
+        $prophecyAccountToService->saveModel()->shouldBeCalledTimes(1);
 
-        $this->invoiceDecorator->isStateHold()->willReturn(false);
-        $this->invoiceDecorator->isStateTransacted()->willReturn(true);
-        $this->invoiceDecorator->canCancel()->willReturn(true);
-        $this->invoiceDecorator->getAmount()->willReturn($amount);
-        $this->invoiceDecorator->loadInvoice()->shouldBeCalledTimes(1);
-        $this->invoiceDecorator->setStateCanceled()->shouldBeCalledTimes(1);
-        $this->invoiceDecorator->saveModel()->shouldBeCalledTimes(1);
-        $this->invoiceDecorator->getAccountFrom()->shouldBeCalledTimes(1);
-        $this->invoiceDecorator->getAccountTo()->shouldBeCalledTimes(1);
+        $this->invoice->isStateHold()->willReturn(false);
+        $this->invoice->isStateTransacted()->willReturn(true);
+        $this->invoice->getAmount()->willReturn($amount);
+        $this->invoice->setStateCanceled()->shouldBeCalledTimes(1);
+        $this->invoice->getStateCanceled()->shouldBeCalledTimes(1);
+
+        $this->invoiceService->canCancel()->willReturn(true);
+        $this->invoiceService->loadInvoice()->shouldBeCalledTimes(1);
+        $this->invoiceService->saveModel()->shouldBeCalledTimes(1);
+        $this->invoiceService->getAccountFrom()->shouldBeCalledTimes(1);
+        $this->invoiceService->getAccountTo()->shouldBeCalledTimes(1);
 
         $this->DB->beginTransaction()->shouldBeCalledTimes(1);
         $this->DB->commit()->shouldBeCalledTimes(1);
         $this->DB->rollback()->shouldNotBeCalled();
 
-        /** @var TransactionDecorator|TransactionInterface|ObjectProphecy $prophecyTransaction */
-        $prophecyTransaction = $this->prophesize(TransactionDecorator::class);
-        $prophecyTransaction->willImplement(TransactionInterface::class);
-        $prophecyTransaction->createNewTransaction($this->invoice->reveal(), null);
-        $prophecyTransaction->setStateSuccess()->shouldBeCalledTimes(1);
-        $prophecyTransaction->saveModel()->shouldBeCalledTimes(2);
-        $this->DI->getTransactionDecorator()->willReturn($prophecyTransaction->reveal());
+        $this->transaction->setStateSuccess()->shouldBeCalledTimes(1);
+        $this->transactionService->createNewTransaction($this->invoice->reveal(), null);
+        $this->transactionService->saveModel()->shouldBeCalledTimes(2);
+        $this->DI->getTransactionService()->willReturn($this->transactionService->reveal());
 
         $this->DI
-            ->getAccountDecorator(new TypeToken(AccountInterface::class))
-            ->willReturn($prophecyAccountFromDecorator->reveal(), $prophecyAccountToDecorator->reveal());
+            ->getAccountService(new TypeToken(AccountInterface::class))
+            ->willReturn($prophecyAccountFromService->reveal(), $prophecyAccountToService->reveal());
 
         $module = new Module($this->DI->reveal());
         $module->cancel($this->invoice->reveal());
@@ -169,8 +168,8 @@ class ModuleCancelTest extends TestCase
     {
         $this->expectException(WrongStateException::class);
 
-        $this->invoiceDecorator->canCancel()->willReturn(false);
-        $this->transaction->saveModel()->shouldNotBeCalled();
+        $this->invoiceService->canCancel()->willReturn(false);
+        $this->transactionService->saveModel()->shouldNotBeCalled();
 
         $module = new Module($this->DI->reveal());
         $module->cancel($this->invoice->reveal());
@@ -183,21 +182,24 @@ class ModuleCancelTest extends TestCase
         /** @var ExceptionInterface|ObjectProphecy $exception */
         $exception = $this->prophesize(ExceptionInterface::class);
 
-        $this->invoiceDecorator->isStateHold()->willReturn(false);
-        $this->invoiceDecorator->isStateTransacted()->willReturn(false);
-        $this->invoiceDecorator->canCancel()->willReturn(true);
-        $this->invoiceDecorator->saveModel()->willThrow($exception->reveal());
+        $this->invoice->isStateHold()->willReturn(false);
+        $this->invoice->isStateTransacted()->willReturn(false);
+        $this->invoice->setStateCanceled()->shouldBeCalledTimes(1);
+        $this->invoice->getStateCanceled()->shouldBeCalledTimes(1);
+
+        $this->invoiceService->canCancel()->willReturn(true);
+        $this->invoiceService->saveModel()->willThrow($exception->reveal());
+        $this->invoiceService->loadInvoice()->shouldBeCalledTimes(1);
 
         $this->DB->beginTransaction()->shouldBeCalledTimes(1);
         $this->DB->commit()->shouldNotBeCalled();
         $this->DB->rollback()->shouldBeCalledTimes(1);
-        $this->invoiceDecorator->setStateCanceled()->shouldBeCalledTimes(1);
-        $this->invoiceDecorator->loadInvoice()->shouldBeCalledTimes(1);
 
-        $this->transaction->createNewTransaction($this->invoice->reveal(), null)->shouldBeCalledTimes(1);
-        $this->transaction->saveModel()->shouldBeCalledTimes(2);
         $this->transaction->setStateFail()->shouldBeCalledTimes(1);
         $this->transaction->setStateSuccess()->shouldNotBeCalled();
+
+        $this->transactionService->createNewTransaction($this->invoice->reveal(), null)->shouldBeCalledTimes(1);
+        $this->transactionService->saveModel()->shouldBeCalledTimes(2);
 
         $module = new Module($this->DI->reveal());
         $module->cancel($this->invoice->reveal());
