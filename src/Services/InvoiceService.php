@@ -1,15 +1,15 @@
 <?php
 
-namespace miolae\Accounting\Services;
+namespace viktorprogger\Accounting\Services;
 
-use miolae\Accounting\Interfaces\Services\InvoiceServiceInterface;
-use miolae\Accounting\Interfaces\DTO\AccountInterface;
-use miolae\Accounting\Interfaces\DTO\InvoiceInterface;
+use viktorprogger\Accounting\Interfaces\Services\InvoiceServiceInterface;
+use viktorprogger\Accounting\Interfaces\DTO\AccountInterface;
+use viktorprogger\Accounting\Interfaces\DTO\InvoiceInterface;
 
 /**
  * Class InvoiceService
  *
- * @package miolae\Accounting\Services
+ * @package viktorprogger\Accounting\Services
  */
 abstract class InvoiceService implements InvoiceServiceInterface
 {

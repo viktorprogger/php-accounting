@@ -1,6 +1,6 @@
 <?php
 
-namespace miolae\Accounting\Interfaces\Services;
+namespace viktorprogger\Accounting\Interfaces\Services;
 
 interface DBInterface
 {

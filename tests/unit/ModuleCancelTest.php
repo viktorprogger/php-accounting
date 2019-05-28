@@ -1,13 +1,13 @@
 <?php
 
-use miolae\Accounting\Services\InvoiceService;
-use miolae\Accounting\Services\TransactionService;
-use miolae\Accounting\Exceptions\WrongStateException;
-use miolae\Accounting\Interfaces\ExceptionInterface;
-use miolae\Accounting\Interfaces\DTO\InvoiceInterface;
-use miolae\Accounting\Interfaces\ServiceContainerInterface;
-use miolae\Accounting\Interfaces\Services\DBInterface;
-use miolae\Accounting\Module;
+use viktorprogger\Accounting\Services\InvoiceService;
+use viktorprogger\Accounting\Services\TransactionService;
+use viktorprogger\Accounting\Exceptions\WrongStateException;
+use viktorprogger\Accounting\Interfaces\ExceptionInterface;
+use viktorprogger\Accounting\Interfaces\DTO\InvoiceInterface;
+use viktorprogger\Accounting\Interfaces\ServiceContainerInterface;
+use viktorprogger\Accounting\Interfaces\Services\DBInterface;
+use viktorprogger\Accounting\Module;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 

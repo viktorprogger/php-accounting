@@ -1,15 +1,15 @@
 <?php
 
-namespace miolae\Accounting\Services;
+namespace viktorprogger\Accounting\Services;
 
-use miolae\Accounting\Exceptions\OutOfFundsException;
-use miolae\Accounting\Interfaces\Services\AccountServiceInterface;
-use miolae\Accounting\Interfaces\DTO\AccountInterface;
+use viktorprogger\Accounting\Exceptions\OutOfFundsException;
+use viktorprogger\Accounting\Interfaces\Services\AccountServiceInterface;
+use viktorprogger\Accounting\Interfaces\DTO\AccountInterface;
 
 /**
  * Class AccountService
  *
- * @package miolae\Accounting\Services
+ * @package viktorprogger\Accounting\Services
  */
 abstract class AccountService implements AccountServiceInterface
 {

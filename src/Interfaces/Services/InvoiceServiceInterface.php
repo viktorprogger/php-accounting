@@ -1,14 +1,14 @@
 <?php
 
-namespace miolae\Accounting\Interfaces\Services;
+namespace viktorprogger\Accounting\Interfaces\Services;
 
-use miolae\Accounting\Interfaces\DTO\AccountInterface;
-use miolae\Accounting\Interfaces\DTO\InvoiceInterface;
+use viktorprogger\Accounting\Interfaces\DTO\AccountInterface;
+use viktorprogger\Accounting\Interfaces\DTO\InvoiceInterface;
 
 /**
  * Interface InvoiceServiceInterface
  *
- * @package miolae\Accounting\Interfaces\Decorators
+ * @package viktorprogger\Accounting\Interfaces\Decorators
  */
 interface InvoiceServiceInterface
 {

@@ -1,14 +1,14 @@
 <?php
 
-namespace miolae\Accounting\Interfaces;
+namespace viktorprogger\Accounting\Interfaces;
 
-use miolae\Accounting\Interfaces\DTO\AccountInterface;
-use miolae\Accounting\Interfaces\DTO\InvoiceInterface;
-use miolae\Accounting\Interfaces\DTO\TransactionInterface;
-use miolae\Accounting\Interfaces\Services\AccountServiceInterface;
-use miolae\Accounting\Interfaces\Services\DBInterface;
-use miolae\Accounting\Interfaces\Services\InvoiceServiceInterface;
-use miolae\Accounting\Interfaces\Services\TransactionServiceInterface;
+use viktorprogger\Accounting\Interfaces\DTO\AccountInterface;
+use viktorprogger\Accounting\Interfaces\DTO\InvoiceInterface;
+use viktorprogger\Accounting\Interfaces\DTO\TransactionInterface;
+use viktorprogger\Accounting\Interfaces\Services\AccountServiceInterface;
+use viktorprogger\Accounting\Interfaces\Services\DBInterface;
+use viktorprogger\Accounting\Interfaces\Services\InvoiceServiceInterface;
+use viktorprogger\Accounting\Interfaces\Services\TransactionServiceInterface;
 
 interface ServiceContainerInterface
 {

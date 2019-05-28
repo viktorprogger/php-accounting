@@ -1,6 +1,6 @@
 <?php
 
-namespace miolae\Accounting\Interfaces\DTO;
+namespace viktorprogger\Accounting\Interfaces\DTO;
 
 interface InvoiceInterface
 {

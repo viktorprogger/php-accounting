@@ -1,18 +1,17 @@
 {
-    "name": "miolae/php-accounting",
+    "name": "viktorprogger/php-accounting",
     "description": "Flexible billing module to manage different accounts and pay systems and make transactions",
     "keywords": [
         "billing",
         "invoice",
         "finances",
-        "miolae",
         "viktorprogger"
     ],
     "version": "0.0.1",
     "license": "MIT",
     "support": {
-        "issues": "https://github.com/miolae/php-accounting/issues?state=open",
-        "source": "https://github.com/miolae/php-accounting"
+        "issues": "https://github.com/viktorprogger/php-accounting/issues?state=open",
+        "source": "https://github.com/viktorprogger/php-accounting"
     },
     "authors": [
         {
@@ -32,7 +31,7 @@
     },
     "autoload": {
         "psr-4": {
-            "miolae\\Accounting\\": "src"
+            "viktorprogger\\Accounting\\": "src"
         }
     },
     "require-dev": {

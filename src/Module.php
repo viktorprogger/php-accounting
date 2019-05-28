@@ -1,12 +1,12 @@
 <?php
 
-namespace miolae\Accounting;
+namespace viktorprogger\Accounting;
 
-use miolae\Accounting\Exceptions\WrongStateException;
-use miolae\Accounting\Interfaces\ExceptionInterface;
-use miolae\Accounting\Interfaces\DTO\AccountInterface;
-use miolae\Accounting\Interfaces\DTO\InvoiceInterface;
-use miolae\Accounting\Interfaces\ServiceContainerInterface;
+use viktorprogger\Accounting\Exceptions\WrongStateException;
+use viktorprogger\Accounting\Interfaces\ExceptionInterface;
+use viktorprogger\Accounting\Interfaces\DTO\AccountInterface;
+use viktorprogger\Accounting\Interfaces\DTO\InvoiceInterface;
+use viktorprogger\Accounting\Interfaces\ServiceContainerInterface;
 
 class Module
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace miolae\Accounting\Interfaces;
+namespace viktorprogger\Accounting\Interfaces;
 
 interface ExceptionInterface extends \Throwable
 {

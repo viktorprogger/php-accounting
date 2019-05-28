@@ -1,8 +1,8 @@
 <?php
 
-namespace miolae\Accounting\Exceptions;
+namespace viktorprogger\Accounting\Exceptions;
 
-use miolae\Accounting\Interfaces\ExceptionInterface;
+use viktorprogger\Accounting\Interfaces\ExceptionInterface;
 
 class WrongStateException extends \RuntimeException implements ExceptionInterface
 {
